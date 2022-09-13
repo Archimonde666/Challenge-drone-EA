@@ -1,8 +1,9 @@
-from parameters import RED, cv2, np
-# output of subsystem
+from parameters import RED
+import cv2
+import numpy as np
 
 
-class marker_status:
+class MarkerStatus:
     id = -1
     corners = []
     # Origin axis
@@ -47,7 +48,7 @@ class marker_status:
 class SelectTargetMarker:
     @classmethod
     def setup(cls):
-        marker_status.reset()
+        MarkerStatus.reset()
 
     @classmethod
     def stop(cls):
@@ -59,8 +60,8 @@ class SelectTargetMarker:
         cls.drone_pos = drone_pos
         id, corners = cls._get_marker_with_min_id(markers)
         if id == -1:
-            marker_status.reset()
-            return marker_status
+            MarkerStatus.reset()
+            return MarkerStatus
 
         br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
         center_pt = cls._get_midpoint([br, bl, tl, tr])
@@ -85,20 +86,20 @@ class SelectTargetMarker:
         cls.draw(frame)
 
         # update output
-        marker_status.id = id
-        marker_status.corners = corners
-        marker_status.center_pt = center_pt
-        marker_status.left_pt = left_pt
-        marker_status.right_pt = right_pt
-        marker_status.bottom_pt = bottom_pt
-        marker_status.top_pt = top_pt
-        marker_status.h_angle = h_angle
-        marker_status.v_angle = v_angle
-        marker_status.m_angle = m_angle
-        marker_status.m_distance = m_distance
-        marker_status.height = height
-        marker_status.width = width
-        return marker_status
+        MarkerStatus.id = id
+        MarkerStatus.corners = corners
+        MarkerStatus.center_pt = center_pt
+        MarkerStatus.left_pt = left_pt
+        MarkerStatus.right_pt = right_pt
+        MarkerStatus.bottom_pt = bottom_pt
+        MarkerStatus.top_pt = top_pt
+        MarkerStatus.h_angle = h_angle
+        MarkerStatus.v_angle = v_angle
+        MarkerStatus.m_angle = m_angle
+        MarkerStatus.m_distance = m_distance
+        MarkerStatus.height = height
+        MarkerStatus.width = width
+        return MarkerStatus
 
     @staticmethod
     def _get_marker_with_min_id(markers):
@@ -143,23 +144,23 @@ class SelectTargetMarker:
 
     @classmethod
     def draw(cls, frame):
-        if marker_status.id == -1:
+        if MarkerStatus.id == -1:
             return
-        cv2.aruco.drawDetectedMarkers(frame, np.array([[marker_status.corners]]), np.array([
-            [marker_status.id]]), borderColor=RED)
+        cv2.aruco.drawDetectedMarkers(frame, np.array([[MarkerStatus.corners]]), np.array([
+            [MarkerStatus.id]]), borderColor=RED)
 
-        cv2.line(frame, marker_status.top_pt,
-                 marker_status.bottom_pt, (255, 0, 0), 2)
-        cv2.line(frame, marker_status.left_pt,
-                 marker_status.right_pt, (255, 0, 0), 2)
+        cv2.line(frame, MarkerStatus.top_pt,
+                 MarkerStatus.bottom_pt, (255, 0, 0), 2)
+        cv2.line(frame, MarkerStatus.left_pt,
+                 MarkerStatus.right_pt, (255, 0, 0), 2)
         top_pt_with_offset = tuple(
-            np.array(marker_status.top_pt) + np.array(cls.offset))
+            np.array(MarkerStatus.top_pt) + np.array(cls.offset))
         bottom_pt_with_offset = tuple(
-            np.array(marker_status.bottom_pt) + np.array(cls.offset))
+            np.array(MarkerStatus.bottom_pt) + np.array(cls.offset))
         left_pt_with_offset = tuple(
-            np.array(marker_status.left_pt) + np.array(cls.offset))
+            np.array(MarkerStatus.left_pt) + np.array(cls.offset))
         right_pt_with_offset = tuple(
-            np.array(marker_status.right_pt) + np.array(cls.offset))
+            np.array(MarkerStatus.right_pt) + np.array(cls.offset))
         cv2.line(frame,
                  top_pt_with_offset,
                  bottom_pt_with_offset,
