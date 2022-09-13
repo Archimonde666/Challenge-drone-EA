@@ -18,7 +18,7 @@ class ModeStatus:
     value = MODE.LAND
 
 
-class ReadKeyboard:
+class ReadUserInput:
     """Maintains the Tello display and moves it through the keyboard keys.
     Press escape key to quit.
     The controls are:

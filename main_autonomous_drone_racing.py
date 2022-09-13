@@ -1,7 +1,7 @@
 import time
 from parameters import ENV, RunStatus, FPS, DRONE_POS, RAD2DEG
 from subsys_display_view import Display
-from subsys_read_keyboard import ReadKeyboard
+from subsys_read_user_input import ReadUserInput
 from subsys_markers_detected import MarkersDetected
 from subsys_select_target_marker import SelectTargetMarker
 from subsys_tello_sensors import TelloSensors
@@ -16,14 +16,14 @@ def setup():
     # ReadCAM.setup()
     Display.setup()
     VisualControl.setup()
-    ReadKeyboard.setup()
+    ReadUserInput.setup()
     MarkersDetected.setup()
     SelectTargetMarker.setup()
 
 
 def run():
     # run keyboard subsystem
-    rc_status_1, key_status, mode_status = ReadKeyboard.run(rc_threshold=40)
+    rc_status_1, key_status, mode_status = ReadUserInput.run(rc_threshold=40)
     # get keyboard subsystem
     frame, drone_status = TelloSensors.run(mode_status)
     markers_status, frame = MarkersDetected.run(frame)
@@ -64,7 +64,7 @@ def stop():
     Display.stop()
     TelloSensors.stop()
     TelloActuators.stop()
-    ReadKeyboard.stop()
+    ReadUserInput.stop()
     MarkersDetected.stop()
     SelectTargetMarker.stop()
 
