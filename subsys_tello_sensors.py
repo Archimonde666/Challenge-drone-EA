@@ -1,16 +1,13 @@
-from parameters import ENV, MODE, RUN, cv2
+from parameters import ENV, MODE, RUN
+import cv2
 from DJITelloPy.djitellopy.tello import Tello
 
-# output of subsystem
 
-
-class drone_status:
+class DroneStatus:
     battery = 0
     roll = 0
     pitch = 0
     yaw = 0
-
-# subsystem
 
 
 class TelloSensors:
@@ -47,11 +44,11 @@ class TelloSensors:
 
         cls.mode = mode_status.value
         # output
-        drone_status.battery = cls.TELLO.get_battery()
-        drone_status.roll = cls.TELLO.get_roll()
-        drone_status.pitch = cls.TELLO.get_pitch()
-        drone_status.yaw = cls.TELLO.get_yaw()
-        return cls.image(), drone_status
+        DroneStatus.battery = cls.TELLO.get_battery()
+        DroneStatus.roll = cls.TELLO.get_roll()
+        DroneStatus.pitch = cls.TELLO.get_pitch()
+        DroneStatus.yaw = cls.TELLO.get_yaw()
+        return cls.image(), DroneStatus
 
     @classmethod
     def update_rc(cls, rc_status):

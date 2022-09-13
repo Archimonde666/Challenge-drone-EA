@@ -1,9 +1,7 @@
-from parameters import cv2
-
-# output of subsystem
+import cv2
 
 
-class markers_status:
+class DetectedMarkersStatus:
     corners = []
     ids = []
 
@@ -24,9 +22,9 @@ class MarkersDetected:
         if cls.PARAM_DRAW_MARKERS and ids is not None:
             cls.__draw_markers(cp_frame, corners, ids)
 
-        markers_status.ids = ids
-        markers_status.corners = corners
-        return markers_status, cp_frame
+        DetectedMarkersStatus.ids = ids
+        DetectedMarkersStatus.corners = corners
+        return DetectedMarkersStatus, cp_frame
 
     @classmethod
     def stop(cls):

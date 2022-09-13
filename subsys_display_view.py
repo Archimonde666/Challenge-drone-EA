@@ -18,10 +18,6 @@ class Display:
     current_line = TOP_MARGIN
     log_dict = {}
 
-    # signals
-
-    # methods
-
     @classmethod
     def _log(cls, title, value):
         """ We use the title argument as key in dictionary to save the position of the log in screen"""

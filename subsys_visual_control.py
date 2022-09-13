@@ -1,16 +1,12 @@
 from parameters import DEG2RAD, RAD2DEG
 import numpy as np
 
-# output of subsystem
-
 
 class rc_status:
     a = 0
     b = 0
     c = 0
     d = 0
-
-# subsystem
 
 
 class VisualControl:
