@@ -1,0 +1,2 @@
+Requirement already satisfied: opencv-python in c:\users\vincent.videlier\appdata\local\programs\python\python310\lib\site-packages (4.6.0.66)
+Requirement already satisfied: numpy>=1.19.3 in c:\users\vincent.videlier\appdata\local\programs\python\python310\lib\site-packages (from opencv-python) (1.23.2)
