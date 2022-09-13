@@ -1,5 +1,5 @@
 import time
-from parameters import run_status, FPS, DRONE_POS, RAD2DEG
+from parameters import RunStatus, FPS, DRONE_POS, RAD2DEG
 from subsys_display_view import Display
 from subsys_read_cam import ReadCAM
 from subsys_read_keyboard import ReadKeyboard
@@ -49,7 +49,7 @@ def stop():
 if __name__ == "__main__":
     setup()
 
-    while run_status.value:
+    while RunStatus.value:
         run()
 
     stop()
