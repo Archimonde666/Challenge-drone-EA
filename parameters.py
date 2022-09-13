@@ -1,7 +1,4 @@
 import math
-import pygame
-import cv2
-import numpy as np
 
 
 # color parameters
@@ -36,5 +33,5 @@ class MODE:
     FLIGHT = 3
 
 
-class run_status:
+class RunStatus:
     value = RUN.STOP
