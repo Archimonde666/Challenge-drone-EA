@@ -1,12 +1,11 @@
 import cv2
 import numpy
 
-import DJITelloPy.djitellopy.tello
+from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
 from parameters import ENV, MODE, RUN
 from subsys_read_user_input import ModeStatus
 from subsys_tello_actuators import TelloActuators
 from subsys_visual_control import RCStatus
-from DJITelloPy.djitellopy.tello import Tello
 from typing import Union
 
 
@@ -25,7 +24,7 @@ class TelloSensors:
 
     TELLO: Tello = None
     CAP: Union[cv2.VideoCapture,
-               DJITelloPy.djitellopy.tello.BackgroundFrameRead] = None
+               BackgroundFrameRead] = None
     mode: int = -1
 
     @classmethod
