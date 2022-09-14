@@ -19,10 +19,8 @@ class Display:
     log_dict = {}
 
     @classmethod
-    def _log(cls, title, value):
+    def _log(cls, title: str, value):
         """ We use the title argument as key in dictionary to save the position of the log in screen"""
-        next_line = cls.current_line + cls.INTER_LINE
-        position = (cls.LEFT_MARGIN, next_line)
         if title in cls.log_dict:
             cls.log_dict[title]['value'] = value
         else:
