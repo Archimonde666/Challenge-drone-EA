@@ -8,8 +8,8 @@ class DetectedMarkersStatus:
     """
     Contains data to describe a list of several markers
     """
-    corners: List[tuple] = []
-    ids: List[int] = []
+    corners = []
+    ids = []
 
 
 # subsystem
