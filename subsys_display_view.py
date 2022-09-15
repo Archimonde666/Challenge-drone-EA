@@ -1,25 +1,31 @@
+import numpy
 import pygame
 import numpy as np
 from parameters import RED, IMG_SIZE, SCREEN_SIZE
+from typing import Any
 
 
 class Display:
+    """
+    Displays the frame acquired by the Tello camera and the marker detection results
+    on a pygame window
+    """
     # Parameters
-    SCREEN = None
+    SCREEN: pygame.Surface = None
 
-    LEFT_MARGIN = 5
-    TOP_MARGIN = 0
-    INTER_LINE = 20
+    LEFT_MARGIN: int = 5
+    TOP_MARGIN: int = 0
+    INTER_LINE: int = 20
 
-    FONT_PANEL_INFO = None
+    FONT_PANEL_INFO: pygame.font.Font = None
 
     # global Variables
-    pos_img_in_screen = 0
-    current_line = TOP_MARGIN
-    log_dict = {}
+    pos_img_in_screen: tuple = (0, 0)
+    current_line: int = TOP_MARGIN
+    log_dict: dict = {}
 
     @classmethod
-    def _log(cls, title: str, value):
+    def _log(cls, title: str, value: Any):
         """ We use the title argument as key in dictionary to save the position of the log in screen"""
         if title in cls.log_dict:
             cls.log_dict[title]['value'] = value
@@ -53,7 +59,7 @@ class Display:
         pass
 
     @classmethod
-    def run(cls, frame, **karg):
+    def run(cls, frame: numpy.ndarray, **karg):
 
         cls.SCREEN.fill([0, 0, 0])
 
