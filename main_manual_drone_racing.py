@@ -23,8 +23,10 @@ def run():
     rc_status, key_status, mode_status = ReadUserInput.run(rc_threshold=40)
     frame, drone_status = TelloSensors.run(mode_status)
     markers_status, frame = MarkersDetected.run(frame)
-    marker_status = SelectTargetMarker.run(
-        frame, markers_status, DRONE_POS, offset=(-4, 0))
+    marker_status = SelectTargetMarker.run(frame,
+                                           markers_status,
+                                           DRONE_POS,
+                                           offset=(-4, 0))
 
     TelloActuators.run(rc_status)
 
@@ -53,16 +55,12 @@ def run():
 def stop():
     Display.stop()
     TelloSensors.stop()
-    TelloActuators.stop()
-    ReadUserInput.stop()
     MarkersDetected.stop()
     SelectTargetMarker.stop()
 
 
 if __name__ == "__main__":
     setup()
-
     while RunStatus.value:
         run()
-
     stop()
