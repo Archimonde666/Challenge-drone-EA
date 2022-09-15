@@ -1,59 +1,57 @@
 from parameters import DEG2RAD, RAD2DEG
-import numpy as np
-
-# output of subsystem
-
-
-class rc_status:
-    a = 0
-    b = 0
-    c = 0
-    d = 0
-
-# subsystem
+from subsys_read_user_input import RCStatus
+from subsys_select_target_marker import MarkerStatus
+import numpy
 
 
 class VisualControl:
+    """
+    Automatically controls the Tello.
+    Input: MarkerStatus class containing information about the selected ARUCO code (distance and angles between
+    marker and UAV, etc...)
+    Output: RCStatus class containing velocity commands that will be forwarded to the UAV
+    """
     KP_LR_CTRL = 0.2
     KP_YAW_CTRL = 0.5
-    cmp = 0
+    cmp: int = 0  # Counts the successive frames without any detected marker
 
     @classmethod
     def setup(cls):
         pass
 
     @classmethod
-    def run(cls, target_marker, drone_status):
-        if target_marker.id == -1:
-            rc_status.c = 0
-            rc_status.d = int(0.99*rc_status.d)    # yaw_velocity
-            rc_status.a = int(0.99*rc_status.a)    # left_right_velocity
-            # wait for the drone to pass the last Gate
-            if cls.cmp > 10:
-                rc_status.b = int(0.99*rc_status.b)  # for_back_velocity
+    def run(cls, target_marker: MarkerStatus) -> type(RCStatus):
+        if target_marker.id == -1:  # When no markers are detected, smoothly stops the UAV
+            RCStatus.c = 0                          # up_down_velocity
+            RCStatus.d = int(0.99*RCStatus.d)       # yaw_velocity
+            RCStatus.a = int(0.99*RCStatus.a)       # left_right_velocity
 
+            if cls.cmp > 10:        # Waits for the UAV to pass the last Gate while decreasing its forward velocity
+                RCStatus.b = int(0.99*RCStatus.b)   # for_back_velocity
             cls.cmp = cls.cmp + 1
-            return rc_status
+            return RCStatus
+
         cls.cmp = 0
-        # Get the angle and the distance between the marker and the drone
+
+        # Gets the angle and the distance between the marker and the drone
         phi = int(target_marker.m_angle * RAD2DEG)
         distance = target_marker.m_distance
 
         # Yaw velocity control
-        rc_status.d = int(cls.KP_YAW_CTRL * phi)
+        RCStatus.d = int(cls.KP_YAW_CTRL * phi)
 
         # Left/Right velocity control
-        DX = distance * np.sin(phi*DEG2RAD)
-        rc_status.a = int(cls.KP_LR_CTRL * DX)
+        dx = distance * numpy.sin(phi*DEG2RAD)
+        RCStatus.a = int(cls.KP_LR_CTRL * dx)
 
         # Forward/Backward velocity control
         rb_threshold = 40
-        rc_status.b = rb_threshold - int(rb_threshold * abs(phi)/70)
+        RCStatus.b = rb_threshold - int(rb_threshold * abs(phi)/70)
 
         # Up/Down velocity control
-        rc_status.c = 0
+        RCStatus.c = 0
 
-        return rc_status
+        return RCStatus
 
     @classmethod
     def stop(cls):

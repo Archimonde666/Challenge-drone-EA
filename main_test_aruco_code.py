@@ -1,30 +1,29 @@
 import time
-from parameters import run_status, FPS, DRONE_POS, RAD2DEG
+from parameters import RunStatus, FPS, DRONE_POS, RAD2DEG
 from subsys_display_view import Display
 from subsys_read_cam import ReadCAM
-from subsys_read_keyboard import ReadKeyboard
+from subsys_read_user_input import ReadUserInput
 from subsys_markers_detected import MarkersDetected
 from subsys_select_target_marker import SelectTargetMarker
 
 
 def setup():
-
     ReadCAM.setup()
     Display.setup()
-    ReadKeyboard.setup()
+    ReadUserInput.setup()
     MarkersDetected.setup()
     SelectTargetMarker.setup()
 
 
 def run():
-    # run keyboard subsystem
-
-    rc_status_1, key_status, mode_status = ReadKeyboard.run(rc_threshold=40)
+    _, __, ___ = ReadUserInput.run(rc_threshold=40)
     frame = ReadCAM.run()
 
     markers_status, frame = MarkersDetected.run(frame)
-    marker_status = SelectTargetMarker.run(
-        frame, markers_status, DRONE_POS, offset=(0, 0))
+    marker_status = SelectTargetMarker.run(frame,
+                                           markers_status,
+                                           DRONE_POS,
+                                           offset=(0, 0))
 
     Display.run(frame,
                 id=marker_status.id,
@@ -48,8 +47,6 @@ def stop():
 
 if __name__ == "__main__":
     setup()
-
-    while run_status.value:
+    while RunStatus.value:
         run()
-
     stop()

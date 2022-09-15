@@ -1,7 +1,7 @@
 import time
-from parameters import ENV, run_status, FPS, DRONE_POS, RAD2DEG
+from parameters import ENV, RunStatus, FPS, DRONE_POS, RAD2DEG
 from subsys_display_view import Display
-from subsys_read_keyboard import ReadKeyboard
+from subsys_read_user_input import ReadUserInput
 from subsys_markers_detected import MarkersDetected
 from subsys_select_target_marker import SelectTargetMarker
 from subsys_tello_sensors import TelloSensors
@@ -13,18 +13,20 @@ def setup():
     TelloSensors.setup()
     TelloActuators.setup(TelloSensors.TELLO)
     Display.setup()
-    ReadKeyboard.setup()
+    ReadUserInput.setup()
     MarkersDetected.setup()
     SelectTargetMarker.setup()
 
 
 def run():
     # run keyboard subsystem
-    rc_status, key_status, mode_status = ReadKeyboard.run(rc_threshold=40)
+    rc_status, key_status, mode_status = ReadUserInput.run(rc_threshold=40)
     frame, drone_status = TelloSensors.run(mode_status)
     markers_status, frame = MarkersDetected.run(frame)
-    marker_status = SelectTargetMarker.run(
-        frame, markers_status, DRONE_POS, offset=(-4, 0))
+    marker_status = SelectTargetMarker.run(frame,
+                                           markers_status,
+                                           DRONE_POS,
+                                           offset=(-4, 0))
 
     TelloActuators.run(rc_status)
 
@@ -53,16 +55,12 @@ def run():
 def stop():
     Display.stop()
     TelloSensors.stop()
-    TelloActuators.stop()
-    ReadKeyboard.stop()
     MarkersDetected.stop()
     SelectTargetMarker.stop()
 
 
 if __name__ == "__main__":
     setup()
-
-    while run_status.value:
+    while RunStatus.value:
         run()
-
     stop()

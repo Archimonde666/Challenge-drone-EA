@@ -1,22 +1,31 @@
-from parameters import ENV, MODE, RUN, cv2
-from DJITelloPy.djitellopy.tello import Tello
+import cv2
+import numpy
 
-# output of subsystem
+from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
+from parameters import ENV, MODE, RUN
+from subsys_read_user_input import ModeStatus
+from subsys_tello_actuators import TelloActuators
+from subsys_visual_control import RCStatus
+from typing import Union
 
 
-class drone_status:
+class DroneStatus:
     battery = 0
     roll = 0
     pitch = 0
     yaw = 0
 
-# subsystem
-
 
 class TelloSensors:
-    TELLO = None
-    CAP = None
-    mode = -1
+    """
+    Retrieves the attitude and battery level from onboard Tello sensors
+    Calls the high-level functions from the Tello API to handle Takeoff, Landing and Emergency flight modes
+    """
+
+    TELLO: Tello = None
+    CAP: Union[cv2.VideoCapture,
+               BackgroundFrameRead] = None
+    mode: int = -1
 
     @classmethod
     def setup(cls):
@@ -33,7 +42,7 @@ class TelloSensors:
         cls.TELLO.end()
 
     @classmethod
-    def run(cls, mode_status):
+    def run(cls, mode_status: ModeStatus) -> (numpy.ndarray, type(DroneStatus)):
         # input
         if mode_status.value == MODE.TAKEOFF:
             cls.TELLO.takeoff()
@@ -47,23 +56,27 @@ class TelloSensors:
 
         cls.mode = mode_status.value
         # output
-        drone_status.battery = cls.TELLO.get_battery()
-        drone_status.roll = cls.TELLO.get_roll()
-        drone_status.pitch = cls.TELLO.get_pitch()
-        drone_status.yaw = cls.TELLO.get_yaw()
-        return cls.image(), drone_status
+        DroneStatus.battery = cls.TELLO.get_battery()
+        DroneStatus.roll = cls.TELLO.get_roll()
+        DroneStatus.pitch = cls.TELLO.get_pitch()
+        DroneStatus.yaw = cls.TELLO.get_yaw()
+        return cls.image(), DroneStatus
 
     @classmethod
-    def update_rc(cls, rc_status):
+    def update_rc(cls, rc_status: RCStatus):
         if cls.mode == MODE.FLIGHT:
-            cls.update_rc_command(rc_status)
+            TelloActuators.update_rc_command(rc_status)
 
     @classmethod
-    def image(cls):
+    def image(cls) -> numpy.ndarray:
+        """
+        Gets the frame from the front camera of the UAV,
+        or gets the frame from a webcam connected to the PC if the DEBUG mode is active
+        """
 
+        image = None
         if ENV.status == ENV.SIMULATION or ENV.status == ENV.REAL:
             if cls.CAP.stopped:
-                image = None
                 RUN.status = RUN.STOP
             else:
                 image = cls.CAP.frame
@@ -74,7 +87,6 @@ class TelloSensors:
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             else:
                 RUN.status = RUN.STOP
-                image = None
         return image
 
     # Private Methods
