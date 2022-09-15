@@ -1,10 +1,8 @@
+import cv2
 import numpy
-
 from parameters import RED, BLUE
 from subsys_markers_detected import DetectedMarkersStatus
 from typing import List
-import cv2
-import numpy as np
 
 
 class MarkerStatus:
@@ -152,15 +150,15 @@ class SelectTargetMarker:
         dx = p1[0]-p2[0]
         dy = p1[1]-p2[1]
         if not vertical:    # Angle between horizontal axis and segment (p1,p2)
-            alpha = np.arctan(-dy/(dx+0.000001))
+            alpha = numpy.arctan(-dy/(dx+0.000001))
             return alpha
         else:               # Angle between vertical axis and segment (p1,p2)
-            beta = np.arctan(-dx/(dy+0.000001))
+            beta = numpy.arctan(-dx/(dy+0.000001))
             return beta
 
     @staticmethod
     def _length_segment(p1: tuple, p2: tuple) -> int:
-        length = np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+        length = numpy.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
         return int(length)
 
     @classmethod
@@ -168,8 +166,8 @@ class SelectTargetMarker:
         if MarkerStatus.id == -1:
             return
         cv2.aruco.drawDetectedMarkers(frame,
-                                      np.array([[MarkerStatus.corners]]),
-                                      np.array([[MarkerStatus.id]]),
+                                      numpy.array([[MarkerStatus.corners]]),
+                                      numpy.array([[MarkerStatus.id]]),
                                       borderColor=RED)
         cv2.line(frame,
                  MarkerStatus.top_pt,
@@ -180,10 +178,10 @@ class SelectTargetMarker:
                  MarkerStatus.right_pt,
                  RED, 2)
 
-        top_pt_with_offset = tuple(np.array(MarkerStatus.top_pt) + np.array(cls.offset))
-        bottom_pt_with_offset = tuple(np.array(MarkerStatus.bottom_pt) + np.array(cls.offset))
-        left_pt_with_offset = tuple(np.array(MarkerStatus.left_pt) + np.array(cls.offset))
-        right_pt_with_offset = tuple(np.array(MarkerStatus.right_pt) + np.array(cls.offset))
+        top_pt_with_offset = tuple(numpy.array(MarkerStatus.top_pt) + numpy.array(cls.offset))
+        bottom_pt_with_offset = tuple(numpy.array(MarkerStatus.bottom_pt) + numpy.array(cls.offset))
+        left_pt_with_offset = tuple(numpy.array(MarkerStatus.left_pt) + numpy.array(cls.offset))
+        right_pt_with_offset = tuple(numpy.array(MarkerStatus.right_pt) + numpy.array(cls.offset))
 
         cv2.line(frame,
                  top_pt_with_offset,

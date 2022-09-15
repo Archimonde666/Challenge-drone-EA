@@ -1,7 +1,6 @@
 import cv2
-from typing import List
-
 import numpy
+from typing import List
 
 
 class DetectedMarkersStatus:
