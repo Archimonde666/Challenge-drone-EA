@@ -1,8 +1,9 @@
 import cv2
+import numpy
 
 
 class ReadCAM:
-    vid = None  # video capture object
+    vid: cv2.VideoCapture = None  # video capture object
 
     @classmethod
     def setup(cls):
@@ -11,7 +12,7 @@ class ReadCAM:
         cls.vid = cv2.VideoCapture(0)
 
     @classmethod
-    def run(cls):
+    def run(cls) -> numpy.ndarray:
         ret, frame = cls.vid.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         return frame
