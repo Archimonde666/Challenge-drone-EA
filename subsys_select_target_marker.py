@@ -103,7 +103,7 @@ class SelectTargetMarker:
         cls.draw(frame)
 
         # update output
-        MarkerStatus.id = id
+        MarkerStatus.id = target_marker_id
         MarkerStatus.corners = corners
         MarkerStatus.center_pt = center_pt
         MarkerStatus.left_pt = left_pt
