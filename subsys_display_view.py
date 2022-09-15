@@ -1,6 +1,5 @@
 import numpy
 import pygame
-import numpy as np
 from parameters import RED, IMG_SIZE, SCREEN_SIZE
 from typing import Any
 
@@ -59,16 +58,16 @@ class Display:
         pass
 
     @classmethod
-    def run(cls, frame: numpy.ndarray, **karg):
+    def run(cls, frame: numpy.ndarray, **kwargs):
 
         cls.SCREEN.fill([0, 0, 0])
 
         # cls._log("Battery:", f"{DRONE_STATUS.battery}%")
-        for key in karg:
-            cls._log(f"{key}: ", f"{karg[key]}")
+        for key in kwargs:
+            cls._log(f"{key}: ", f"{kwargs[key]}")
 
-        frame = np.rot90(frame)
-        frame = np.flipud(frame)
+        frame = numpy.rot90(frame)
+        frame = numpy.flipud(frame)
         frame = pygame.surfarray.make_surface(frame)
 
         cls._update_log()

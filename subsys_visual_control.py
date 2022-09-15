@@ -1,7 +1,7 @@
 from parameters import DEG2RAD, RAD2DEG
 from subsys_read_user_input import RCStatus
 from subsys_select_target_marker import MarkerStatus
-import numpy as np
+import numpy
 
 
 class VisualControl:
@@ -41,7 +41,7 @@ class VisualControl:
         RCStatus.d = int(cls.KP_YAW_CTRL * phi)
 
         # Left/Right velocity control
-        dx = distance * np.sin(phi*DEG2RAD)
+        dx = distance * numpy.sin(phi*DEG2RAD)
         RCStatus.a = int(cls.KP_LR_CTRL * dx)
 
         # Forward/Backward velocity control
