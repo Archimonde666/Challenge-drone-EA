@@ -13,7 +13,6 @@ def setup():
     ENV.status = ENV.SIMULATION
     TelloSensors.setup()
     TelloActuators.setup(TelloSensors.TELLO)
-    # ReadCAM.setup()
     Display.setup()
     VisualControl.setup()
     ReadUserInput.setup()
@@ -22,15 +21,19 @@ def setup():
 
 
 def run():
-    # run keyboard subsystem
+    # Gets the velocity commands from the keyboard
     rc_status_1, key_status, mode_status = ReadUserInput.run(rc_threshold=40)
-    # get keyboard subsystem
     frame, drone_status = TelloSensors.run(mode_status)
     markers_status, frame = MarkersDetected.run(frame)
-    marker_status = SelectTargetMarker.run(
-        frame, markers_status, DRONE_POS, offset=(-4, 0))
-    rc_status_2 = VisualControl.run(marker_status, drone_status)
+    marker_status = SelectTargetMarker.run(frame,
+                                           markers_status,
+                                           DRONE_POS,
+                                           offset=(-4, 0))
+    # Gets the velocity commands from the automatic control module
+    rc_status_2 = VisualControl.run(marker_status)
 
+    # The user input is prioritized -> if the keyboard is used, the automatic control
+    # will not interfere with the manual control commands
     if key_status.is_pressed:
         rc_status = rc_status_1
     else:
@@ -63,16 +66,12 @@ def run():
 def stop():
     Display.stop()
     TelloSensors.stop()
-    TelloActuators.stop()
-    ReadUserInput.stop()
     MarkersDetected.stop()
     SelectTargetMarker.stop()
 
 
 if __name__ == "__main__":
     setup()
-
     while RunStatus.value:
         run()
-
     stop()
