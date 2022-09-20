@@ -1,3 +1,4 @@
+import logging
 import time
 from parameters import ENV, RunStatus, FPS, DRONE_POS, RAD2DEG
 from subsys_display_view import Display
@@ -11,6 +12,7 @@ from subsys_tello_actuators import TelloActuators
 def setup():
     ENV.status = ENV.SIMULATION
     TelloSensors.setup()
+    TelloSensors.TELLO.LOGGER.setLevel(logging.INFO)
     TelloActuators.setup(TelloSensors.TELLO)
     Display.setup()
     ReadUserInput.setup()
