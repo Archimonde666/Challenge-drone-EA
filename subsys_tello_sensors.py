@@ -10,10 +10,11 @@ from typing import Union
 
 
 class DroneStatus:
-    battery = 0
-    roll = 0
-    pitch = 0
-    yaw = 0
+    state: dict = {}
+
+    @classmethod
+    def __get_dict__(cls) -> dict:
+        return cls.state
 
 
 class TelloSensors:
@@ -56,10 +57,12 @@ class TelloSensors:
 
         cls.mode = mode_status.value
         # output
+
         DroneStatus.battery = cls.TELLO.get_battery()
         DroneStatus.roll = cls.TELLO.get_roll()
         DroneStatus.pitch = cls.TELLO.get_pitch()
         DroneStatus.yaw = cls.TELLO.get_yaw()
+        DroneStatus.state = cls.TELLO.get_current_state()
         return cls.image(), DroneStatus
 
     @classmethod

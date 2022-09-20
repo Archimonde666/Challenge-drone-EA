@@ -1,6 +1,6 @@
 import cv2
 import numpy
-from parameters import RED, BLUE
+from parameters import RED, BLUE, RAD2DEG
 from subsys_markers_detected import DetectedMarkersStatus
 from typing import List
 
@@ -48,6 +48,17 @@ class MarkerStatus:
         cls.m_distance = 0
         cls.height = 0
         cls.width = 0
+
+    @classmethod
+    def __getDict__(cls) -> dict:
+        ms: dict = {'id': cls.id,
+                    'H_angle': int(cls.h_angle * RAD2DEG),
+                    'v_angle': int(cls.v_angle * RAD2DEG),
+                    'm_angle': int(cls.m_angle * RAD2DEG),
+                    'm_distance': cls.m_distance,
+                    'm_height': cls.height,
+                    'm_width': cls.width}
+        return ms
 
 
 class SelectTargetMarker:

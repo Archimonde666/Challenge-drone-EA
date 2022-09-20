@@ -1,12 +1,13 @@
 import logging
 import time
-from parameters import ENV, RunStatus, FPS, DRONE_POS, RAD2DEG
+from parameters import ENV, RunStatus, FPS, DRONE_POS
 from subsys_display_view import Display
 from subsys_read_user_input import ReadUserInput
 from subsys_markers_detected import MarkersDetected
 from subsys_select_target_marker import SelectTargetMarker
 from subsys_tello_sensors import TelloSensors
 from subsys_tello_actuators import TelloActuators
+from typing import List
 
 
 def setup():
@@ -21,37 +22,40 @@ def setup():
 
 
 def run():
-    # run keyboard subsystem
+    # Get user input (keyboard, gamepad, joystick)
     rc_status, key_status, mode_status = ReadUserInput.run(rc_threshold=40)
+
+    # Retrieve UAV front camera frame and internal variables
     frame, drone_status = TelloSensors.run(mode_status)
+
+    # Search for all ARUCO markers in the frame
     markers_status, frame = MarkersDetected.run(frame)
+
+    # Select the ARUCO marker to reach first
     marker_status = SelectTargetMarker.run(frame,
                                            markers_status,
                                            DRONE_POS,
                                            offset=(-4, 0))
 
+    # Send manual commands to the UAV (automatic mode disabled)
     TelloActuators.run(rc_status)
 
-    Display.run(frame,
-                Battery=drone_status.battery,
-                Roll=drone_status.roll,
-                Pitch=drone_status.pitch,
-                Yaw=drone_status.yaw,
-                Mode=mode_status.value,
-                LeftRight=rc_status.a,
-                ForBack=rc_status.b,
-                UpDown=rc_status.c,
-                YawRC=rc_status.d,
-                id=marker_status.id,
-                H_angle=int(marker_status.h_angle * RAD2DEG),
-                v_angle=int(marker_status.v_angle * RAD2DEG),
-                m_angle=int(marker_status.m_angle * RAD2DEG),
-                m_distance=marker_status.m_distance,
-                m_height=marker_status.height,
-                m_width=marker_status.width,
-                )
+    # Update pygame display window
+    variables_to_print = merge_dicts([drone_status.state,
+                                      mode_status.__getDict__(),
+                                      rc_status.__getDict__(),
+                                      marker_status.__getDict__()])
+    Display.run(frame, variables_to_print)
 
+    # Wait for a new frame to be available
     time.sleep(1 / FPS)
+
+
+def merge_dicts(dict_list: List[dict]) -> dict:
+    merged_dict: dict = {}
+    for dictionary in dict_list:
+        merged_dict.update(dictionary)
+    return merged_dict
 
 
 def stop():
