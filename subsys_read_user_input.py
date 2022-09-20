@@ -10,7 +10,7 @@ class KeyStatus:
     """
 
     is_pressed: bool = False
-    type_pressed: int = None    # Index of the key
+    type_pressed: int = None  # Index of the key
 
 
 class RCStatus:
@@ -92,7 +92,7 @@ class ReadUserInput:
                     KeyStatus.type_pressed = None
                     cls.buttons(button, rc_threshold, KeyStatus)
             except KeyError as e:
-                print('No axis/button/key found with index %i in the Gamepad map', e)
+                print('No axis/button/key found with index', e, 'in the Gamepad map')
         return RCStatus, KeyStatus, ModeStatus
 
     @classmethod
