@@ -14,7 +14,7 @@ class Display:
 
     LEFT_MARGIN: int = 5
     TOP_MARGIN: int = 0
-    INTER_LINE: int = 20
+    INTER_LINE: int = 16
 
     FONT_PANEL_INFO: pygame.font.Font = None
 
@@ -58,13 +58,13 @@ class Display:
         pass
 
     @classmethod
-    def run(cls, frame: numpy.ndarray, **kwargs):
+    def run(cls, frame: numpy.ndarray, variables_dict: dict):
 
         cls.SCREEN.fill([0, 0, 0])
 
         # cls._log("Battery:", f"{DRONE_STATUS.battery}%")
-        for key in kwargs:
-            cls._log(f"{key}: ", f"{kwargs[key]}")
+        for key in variables_dict:
+            cls._log(f"{key}: ", f"{variables_dict[key]}")
 
         frame = numpy.rot90(frame)
         frame = numpy.flipud(frame)

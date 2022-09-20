@@ -19,13 +19,21 @@ class RCStatus:
         a : Left / Right velocity
         b : Forward / Backward velocity
         c : Upward / Downward velocity
-        d : Yaw velocity
+        d : Yaw rate
     """
 
     a: int = 0  # Left / Right velocity
     b: int = 0  # Forward / Backward velocity
     c: int = 0  # Upward / Downward velocity
     d: int = 0  # Yaw velocity
+
+    @classmethod
+    def __getDict__(cls) -> dict:
+        rc: dict = {'a': cls.a,
+                    'b': cls.b,
+                    'c': cls.c,
+                    'd': cls.d}
+        return rc
 
 
 class ModeStatus:
@@ -34,6 +42,11 @@ class ModeStatus:
     (EMERGENCY, TAKEOFF, LAND, FLIGHT)
     """
     value: int = MODE.LAND
+
+    @classmethod
+    def __getDict__(cls) -> dict:
+        ms: dict = {'Mode': cls.value}
+        return ms
 
 
 class ReadUserInput:
@@ -71,7 +84,9 @@ class ReadUserInput:
                 if event.type == pygame.QUIT:
                     RunStatus.value = RUN.STOP
                 elif event.type == pygame.JOYAXISMOTION:
+                    KeyStatus.is_pressed = True
                     axis = cls.joystick_maps[event.joy]['axes'][event.axis]
+                    KeyStatus.type_pressed = axis
                     cls.axis_motion(axis, event.value, rc_threshold)
                 elif event.type == pygame.JOYBUTTONDOWN:
                     KeyStatus.is_pressed = True
@@ -115,7 +130,7 @@ class ReadUserInput:
             RCStatus.a = key_status.is_pressed * int(rc_threshold)
         elif button == 'Forward':
             RCStatus.b = key_status.is_pressed * int(rc_threshold)
-        elif button == 'backward':
+        elif button == 'Backward':
             RCStatus.b = - key_status.is_pressed * int(rc_threshold)
         elif button == 'Up':
             RCStatus.c = key_status.is_pressed * int(rc_threshold)
