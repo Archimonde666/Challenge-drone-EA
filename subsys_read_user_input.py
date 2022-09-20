@@ -38,15 +38,8 @@ class ModeStatus:
 
 class ReadUserInput:
     """
-    Handles the keyboard inputs to manually control the Tello
-    The controls are:
-        - T: Takeoff
-        - L: Land
-        - Space: Emergency 
-        - Arrow keys: Forward, backward, left and right.
-        - Q and D: Counterclockwise and clockwise rotations (yaw)
-        - Z and S: Up and down
-        - Esc: Quit
+    Handles the user inputs to manually control the Tello
+    The controls are defined in the subsys_gamepad.py -> Gamepad class
     """
 
     joysticks: List[pygame.joystick.Joystick] = []
@@ -64,9 +57,7 @@ class ReadUserInput:
             try:
                 gp_map = [gp['name'] for gp in Gamepad.map_list].index(name)
                 cls.joystick_maps.append(Gamepad.map_list[gp_map])
-                print('Gamepad map successfully loaded for', name)
-                # TODO
-                # remove print and replace it by an INFO log
+                print('Gamepad map successfully loaded for %s', name)
             except ValueError:
                 print('No configured map for connected gamepad -> using default configuration')
                 gp_map = [gp['name'] for gp in Gamepad.map_list].index('Default')
@@ -83,9 +74,7 @@ class ReadUserInput:
                     axis = cls.joystick_maps[event.joy]['axes'][event.axis]
                     cls.axis_motion(axis, event.value, rc_threshold)
                 except KeyError:
-                    print('No axis found with index', event.axis, 'in the Gamepad map')
-                    # TODO
-                    # remove print and replace it by a WARN log
+                    print('No axis found with index %i in the Gamepad map', event.axis)
             elif event.type == pygame.JOYBUTTONDOWN:
                 try:
                     KeyStatus.is_pressed = True
@@ -93,9 +82,7 @@ class ReadUserInput:
                     KeyStatus.type_pressed = button
                     cls.buttons(button, rc_threshold, KeyStatus)
                 except KeyError:
-                    print('No button found with index', event.button, 'in the Gamepad map')
-                    # TODO
-                    # remove print and replace it by a WARN log
+                    print('No button found with index %i in the Gamepad map', event.button)
             elif event.type == pygame.JOYBUTTONUP:
                 KeyStatus.is_pressed = False
                 KeyStatus.type_pressed = None
@@ -106,9 +93,7 @@ class ReadUserInput:
                     KeyStatus.type_pressed = button
                     cls.buttons(button, rc_threshold, KeyStatus)
                 except KeyError:
-                    print('No key found with index', event.key, 'in the keyboard map')
-                    # TODO
-                    # remove print and replace it by a WARN log
+                    print('No key found with index %i in the keyboard map', event.key)
             elif event.type == pygame.KEYUP:
                 try:
                     KeyStatus.is_pressed = False
@@ -116,65 +101,8 @@ class ReadUserInput:
                     KeyStatus.type_pressed = None
                     cls.buttons(button, rc_threshold, KeyStatus)
                 except KeyError:
-                    print('No key found with index', event.key, 'in the keyboard map')
-                    # TODO
-                    # remove print and replace it by a WARN log
+                    print('No key found with index %i in the keyboard map', event.key)
         return RCStatus, KeyStatus, ModeStatus
-
-    # inter functions
-    @classmethod
-    def __key_down(cls, key: int, rc_threshold: int):
-        """
-        Update velocities based on key pressed
-        Arguments:
-            key: pygame key index (int)
-        """
-        # left_right_velocity
-        if key == pygame.K_RIGHT:
-            RCStatus.a = rc_threshold
-        elif key == pygame.K_LEFT:
-            RCStatus.a = - rc_threshold
-
-        # for_back_velocity
-        elif key == pygame.K_UP:
-            RCStatus.b = rc_threshold
-        elif key == pygame.K_DOWN:
-            RCStatus.b = -rc_threshold
-
-        # up_down_velocity
-        elif key == pygame.K_z:
-            RCStatus.c = rc_threshold
-        elif key == pygame.K_s:
-            RCStatus.c = -rc_threshold
-
-        # yaw_velocity
-        elif key == pygame.K_d:
-            RCStatus.d = rc_threshold
-        elif key == pygame.K_q:
-            RCStatus.d = -rc_threshold
-
-    @classmethod
-    def __key_up(cls, key: int):
-        """
-        Update velocities based on key released
-        Arguments:
-            key: pygame key index (int)
-        """
-        # left_right_velocity
-        if key == pygame.K_RIGHT or key == pygame.K_LEFT:
-            RCStatus.a = 0
-
-        # for_back_velocity
-        elif key == pygame.K_UP or key == pygame.K_DOWN:
-            RCStatus.b = 0
-
-        # up_down_velocity
-        elif key == pygame.K_z or key == pygame.K_s:
-            RCStatus.c = 0
-
-        # yaw_velocity
-        elif key == pygame.K_d or key == pygame.K_q:
-            RCStatus.d = 0
 
     @classmethod
     def buttons(cls, button: str, rc_threshold: int, key_status: type(KeyStatus)):
