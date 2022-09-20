@@ -1,4 +1,6 @@
 from parameters import RunStatus, RUN, MODE
+from subsys_gamepad import Gamepad
+from typing import List
 import pygame
 
 
@@ -8,7 +10,7 @@ class KeyStatus:
     """
 
     is_pressed: bool = False
-    type_pressed: int = None    # Index of the key
+    type_pressed: int = None  # Index of the key
 
 
 class RCStatus:
@@ -36,96 +38,105 @@ class ModeStatus:
 
 class ReadUserInput:
     """
-    Handles the keyboard inputs to manually control the Tello
-    The controls are:
-        - T: Takeoff
-        - L: Land
-        - Space: Emergency 
-        - Arrow keys: Forward, backward, left and right.
-        - Q and D: Counterclockwise and clockwise rotations (yaw)
-        - Z and S: Up and down
-        - Esc: Quit
+    Handles the user inputs to manually control the Tello
+    The controls are defined in the subsys_gamepad.py -> Gamepad class
     """
+
+    joysticks: List[pygame.joystick.Joystick] = []
+    joystick_maps: List[dict] = []
+
     @classmethod
     def setup(cls):
         RunStatus.value = RUN.START
         ModeStatus.value = -1
+        pygame.joystick.init()
+        cls.joysticks = [pygame.joystick.Joystick(j) for j in range(pygame.joystick.get_count())]
+        print(len(cls.joysticks), 'joystick(s) found')
+        for joystick in cls.joysticks:
+            name = joystick.get_name()
+            try:
+                gp_map = [gp['name'] for gp in Gamepad.map_list].index(name)
+                cls.joystick_maps.append(Gamepad.map_list[gp_map])
+                print('Gamepad map successfully loaded for %s', name)
+            except ValueError:
+                print('No configured map for connected gamepad -> using default configuration')
+                gp_map = [gp['name'] for gp in Gamepad.map_list].index('Default')
+                cls.joystick_maps.append(Gamepad.map_list[gp_map])
+            joystick.init()
 
     @classmethod
     def run(cls, rc_threshold: int) -> (type(RCStatus), type(KeyStatus), type(ModeStatus)):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                RunStatus.value = RUN.STOP
-            elif event.type == pygame.KEYDOWN:
-                KeyStatus.is_pressed = True
-                KeyStatus.type_pressed = event.key
-                if event.key == pygame.K_ESCAPE:
+            try:
+                if event.type == pygame.QUIT:
                     RunStatus.value = RUN.STOP
-                elif event.key == pygame.K_SPACE:
-                    ModeStatus.value = MODE.EMERGENCY
-                elif event.key == pygame.K_t:
-                    ModeStatus.value = MODE.TAKEOFF
-                elif event.key == pygame.K_l:
-                    ModeStatus.value = MODE.LAND
-                else:
-                    cls.__key_down(event.key, rc_threshold)
-            elif event.type == pygame.KEYUP:
-                KeyStatus.is_pressed = False
-                KeyStatus.type_pressed = None
-                cls.__key_up(event.key)
+                elif event.type == pygame.JOYAXISMOTION:
+                    axis = cls.joystick_maps[event.joy]['axes'][event.axis]
+                    cls.axis_motion(axis, event.value, rc_threshold)
+                elif event.type == pygame.JOYBUTTONDOWN:
+                    KeyStatus.is_pressed = True
+                    button = cls.joystick_maps[event.joy]['buttons'][event.button]
+                    KeyStatus.type_pressed = button
+                    cls.buttons(button, rc_threshold, KeyStatus)
+                elif event.type == pygame.JOYBUTTONUP:
+                    KeyStatus.is_pressed = False
+                    KeyStatus.type_pressed = None
+                elif event.type == pygame.KEYDOWN:
+                    KeyStatus.is_pressed = True
+                    button = Gamepad.keyboard_map['buttons'][event.key]
+                    KeyStatus.type_pressed = button
+                    cls.buttons(button, rc_threshold, KeyStatus)
+                elif event.type == pygame.KEYUP:
+                    KeyStatus.is_pressed = False
+                    button = Gamepad.keyboard_map['buttons'][event.key]
+                    KeyStatus.type_pressed = None
+                    cls.buttons(button, rc_threshold, KeyStatus)
+            except KeyError as e:
+                print('No axis/button/key found with index', e, 'in the Gamepad map')
         return RCStatus, KeyStatus, ModeStatus
 
-    # inter functions
     @classmethod
-    def __key_down(cls, key: int, rc_threshold: int):
-        """
-        Update velocities based on key pressed
-        Arguments:
-            key: pygame key index (int)
-        """
-        # left_right_velocity
-        if key == pygame.K_RIGHT:
-            RCStatus.a = rc_threshold
-        elif key == pygame.K_LEFT:
-            RCStatus.a = - rc_threshold
-
-        # for_back_velocity
-        elif key == pygame.K_UP:
-            RCStatus.b = rc_threshold
-        elif key == pygame.K_DOWN:
-            RCStatus.b = -rc_threshold
-
-        # up_down_velocity
-        elif key == pygame.K_z:
-            RCStatus.c = rc_threshold
-        elif key == pygame.K_s:
-            RCStatus.c = -rc_threshold
-
-        # yaw_velocity
-        elif key == pygame.K_d:
-            RCStatus.d = rc_threshold
-        elif key == pygame.K_q:
-            RCStatus.d = -rc_threshold
-
-    @classmethod
-    def __key_up(cls, key: int):
-        """
-        Update velocities based on key released
-        Arguments:
-            key: pygame key index (int)
-        """
-        # left_right_velocity
-        if key == pygame.K_RIGHT or key == pygame.K_LEFT:
+    def buttons(cls, button: str, rc_threshold: int, key_status: type(KeyStatus)):
+        if button == 'Stop' and key_status.is_pressed:
             RCStatus.a = 0
-
-        # for_back_velocity
-        elif key == pygame.K_UP or key == pygame.K_DOWN:
             RCStatus.b = 0
-
-        # up_down_velocity
-        elif key == pygame.K_z or key == pygame.K_s:
             RCStatus.c = 0
-
-        # yaw_velocity
-        elif key == pygame.K_d or key == pygame.K_q:
             RCStatus.d = 0
+            RunStatus.value = RUN.STOP
+        elif button == 'Emergency' and key_status.is_pressed:
+            ModeStatus.value = MODE.EMERGENCY
+        elif button == 'Takeoff' and key_status.is_pressed:
+            ModeStatus.value = MODE.TAKEOFF
+        elif button == 'Land' and key_status.is_pressed:
+            ModeStatus.value = MODE.LAND
+        elif button == 'Left':
+            RCStatus.a = - key_status.is_pressed * int(rc_threshold)
+        elif button == 'Right':
+            RCStatus.a = key_status.is_pressed * int(rc_threshold)
+        elif button == 'Forward':
+            RCStatus.b = key_status.is_pressed * int(rc_threshold)
+        elif button == 'backward':
+            RCStatus.b = - key_status.is_pressed * int(rc_threshold)
+        elif button == 'Up':
+            RCStatus.c = key_status.is_pressed * int(rc_threshold)
+        elif button == 'Down':
+            RCStatus.c = - key_status.is_pressed * int(rc_threshold)
+        elif button == 'Yaw+':
+            RCStatus.d = key_status.is_pressed * int(rc_threshold)
+        elif button == 'Yaw-':
+            RCStatus.d = - key_status.is_pressed * int(rc_threshold)
+
+    @classmethod
+    def axis_motion(cls, axis: str, value: float, rc_threshold: int):
+        if axis == 'Roll':
+            RCStatus.a = int(rc_threshold * value)
+        elif axis == 'Pitch':
+            RCStatus.b = - int(rc_threshold * value)
+        elif axis == 'Height':
+            RCStatus.c = - int(rc_threshold * value)
+        elif axis == 'Yaw':
+            RCStatus.d = int(rc_threshold * value)
+        elif axis == 'Yaw+':
+            RCStatus.d = int(rc_threshold * 0.5 * (value + 1))
+        elif axis == 'Yaw-':
+            RCStatus.d = int(rc_threshold * 0.5 * (value - 1))
