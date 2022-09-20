@@ -1,3 +1,4 @@
+import logging
 import time
 from parameters import ENV, RunStatus, FPS, DRONE_POS
 from subsys_display_view import Display
@@ -13,6 +14,7 @@ from typing import List
 def setup():
     ENV.status = ENV.SIMULATION
     TelloSensors.setup()
+    TelloSensors.TELLO.LOGGER.setLevel(logging.WARN)
     TelloActuators.setup(TelloSensors.TELLO)
     Display.setup()
     VisualControl.setup()
