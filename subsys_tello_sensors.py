@@ -56,12 +56,6 @@ class TelloSensors:
             mode_status.value = -1
 
         cls.mode = mode_status.value
-        # output
-
-        DroneStatus.battery = cls.TELLO.get_battery()
-        DroneStatus.roll = cls.TELLO.get_roll()
-        DroneStatus.pitch = cls.TELLO.get_pitch()
-        DroneStatus.yaw = cls.TELLO.get_yaw()
         DroneStatus.state = cls.TELLO.get_current_state()
         return cls.image(), DroneStatus
 
