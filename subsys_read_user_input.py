@@ -67,41 +67,32 @@ class ReadUserInput:
     @classmethod
     def run(cls, rc_threshold: int) -> (type(RCStatus), type(KeyStatus), type(ModeStatus)):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                RunStatus.value = RUN.STOP
-            elif event.type == pygame.JOYAXISMOTION:
-                try:
+            try:
+                if event.type == pygame.QUIT:
+                    RunStatus.value = RUN.STOP
+                elif event.type == pygame.JOYAXISMOTION:
                     axis = cls.joystick_maps[event.joy]['axes'][event.axis]
                     cls.axis_motion(axis, event.value, rc_threshold)
-                except KeyError:
-                    print('No axis found with index %i in the Gamepad map', event.axis)
-            elif event.type == pygame.JOYBUTTONDOWN:
-                try:
+                elif event.type == pygame.JOYBUTTONDOWN:
                     KeyStatus.is_pressed = True
                     button = cls.joystick_maps[event.joy]['buttons'][event.button]
                     KeyStatus.type_pressed = button
                     cls.buttons(button, rc_threshold, KeyStatus)
-                except KeyError:
-                    print('No button found with index %i in the Gamepad map', event.button)
-            elif event.type == pygame.JOYBUTTONUP:
-                KeyStatus.is_pressed = False
-                KeyStatus.type_pressed = None
-            elif event.type == pygame.KEYDOWN:
-                try:
+                elif event.type == pygame.JOYBUTTONUP:
+                    KeyStatus.is_pressed = False
+                    KeyStatus.type_pressed = None
+                elif event.type == pygame.KEYDOWN:
                     KeyStatus.is_pressed = True
                     button = Gamepad.keyboard_map['buttons'][event.key]
                     KeyStatus.type_pressed = button
                     cls.buttons(button, rc_threshold, KeyStatus)
-                except KeyError:
-                    print('No key found with index %i in the keyboard map', event.key)
-            elif event.type == pygame.KEYUP:
-                try:
+                elif event.type == pygame.KEYUP:
                     KeyStatus.is_pressed = False
                     button = Gamepad.keyboard_map['buttons'][event.key]
                     KeyStatus.type_pressed = None
                     cls.buttons(button, rc_threshold, KeyStatus)
-                except KeyError:
-                    print('No key found with index %i in the keyboard map', event.key)
+            except KeyError as e:
+                print('No axis/button/key found with index %i in the Gamepad map', e)
         return RCStatus, KeyStatus, ModeStatus
 
     @classmethod

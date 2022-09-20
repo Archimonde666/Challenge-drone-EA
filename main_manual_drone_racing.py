@@ -12,7 +12,7 @@ from subsys_tello_actuators import TelloActuators
 def setup():
     ENV.status = ENV.SIMULATION
     TelloSensors.setup()
-    TelloSensors.TELLO.LOGGER.setLevel(logging.INFO)
+    TelloSensors.TELLO.LOGGER.setLevel(logging.WARN)
     TelloActuators.setup(TelloSensors.TELLO)
     Display.setup()
     ReadUserInput.setup()
