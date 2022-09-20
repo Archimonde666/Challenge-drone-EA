@@ -10,7 +10,6 @@ RAD2DEG: float = 180/math.pi
 
 FPS: int = 120
 IMG_SIZE: tuple = (640, 480)
-# IMG_SIZE: tuple = (640*2, 480*2)
 DRONE_POS: tuple = (IMG_SIZE[0]//2, 480)
 SCREEN_SIZE: tuple = (800, 480)
 
