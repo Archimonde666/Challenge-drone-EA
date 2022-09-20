@@ -113,7 +113,7 @@ class TelloSensors:
         # Init Tello object that interacts with the Tello drone
         Tello.CONTROL_UDP_PORT_CLIENT = Tello.CONTROL_UDP_PORT
         cls.TELLO = Tello("192.168.10.1")
-        cls.TELLO.connect(False)
+        cls.TELLO.connect()
 
         # In case streaming is on. This happens when we quit this program without the escape key.
         # self.tello.set_video_resolution(Tello.RESOLUTION_480P)
