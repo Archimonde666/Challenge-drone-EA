@@ -9,6 +9,27 @@ from subsys_visual_control import RCStatus
 from typing import Union
 
 
+class DroneState:
+    @classmethod
+    def update_state(cls, variables_dict: dict):
+        for key in variables_dict:
+            setattr(cls, key, variables_dict[key])
+
+    @classmethod
+    def __getDict__(cls) -> dict:
+        # Dictionary containing every Tello internal variables that are printed in the pygame display window
+        uav_variables_to_print: dict = {'bat': 0,
+                                        'roll': 0,
+                                        'pitch': 0,
+                                        'yaw': 0}
+        try:
+            for key in uav_variables_to_print:
+                uav_variables_to_print[key] = vars(cls)[key]
+        except KeyError as e:
+            print(e)
+        return uav_variables_to_print
+
+
 class TelloSensors:
     """
     Retrieves the attitude and battery level from onboard Tello sensors
@@ -20,31 +41,6 @@ class TelloSensors:
                BackgroundFrameRead] = None
     mode: int = -1
 
-    # Dictionary containing every Tello internal variables that are retrieved when the
-    # Tello.get_current_state() method is called
-    tello_internal_state_variables: dict = {'pitch': 0,
-                                            'roll': 0,
-                                            'yaw': 0,
-                                            'vgx': 0,
-                                            'vgy': 0,
-                                            'vgz': 0,
-                                            'templ': 0,
-                                            'temph': 100,
-                                            'tof': 0,
-                                            'h': 0,
-                                            'bat': 100,
-                                            'baro': 0.0,
-                                            'time': 0,
-                                            'agx': 0.0,
-                                            'agy': 0.0,
-                                            'agz': 0.0}
-
-    # Dictionary containing every Tello internal variables that are printed in the pygame display window
-    uav_variables_to_print: dict = {'bat': 0,
-                                    'roll': 0,
-                                    'pitch': 0,
-                                    'yaw': 0}
-
     @classmethod
     def setup(cls):
         if ENV.status == ENV.SIMULATION:
@@ -55,21 +51,12 @@ class TelloSensors:
             cls.__init_debug_env()
 
     @classmethod
-    def __getDict__(cls) -> dict:
-        for key in cls.uav_variables_to_print.keys():
-            try:
-                cls.uav_variables_to_print[key] = cls.tello_internal_state_variables[key]
-            except KeyError:
-                print('No variable with name', key, 'found in UAV state variables dictionary')
-        return cls.uav_variables_to_print
-
-    @classmethod
     def stop(cls):
         # Call it always before finishing. To deallocate resources.
         cls.TELLO.end()
 
     @classmethod
-    def run(cls, mode_status: ModeStatus) -> numpy.ndarray:
+    def run(cls, mode_status: ModeStatus) -> (numpy.ndarray, type(DroneState)):
         # input
         if mode_status.value == MODE.TAKEOFF:
             cls.TELLO.takeoff()
@@ -80,10 +67,9 @@ class TelloSensors:
         elif mode_status.value == MODE.EMERGENCY:
             cls.TELLO.emergency()
             mode_status.value = -1
-
         cls.mode = mode_status.value
-        cls.tello_internal_state_variables = cls.TELLO.get_current_state()
-        return cls.image()
+        DroneState.update_state(cls.TELLO.get_current_state())
+        return cls.image(), DroneState
 
     @classmethod
     def update_rc(cls, rc_status: RCStatus):
