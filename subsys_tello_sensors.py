@@ -10,6 +10,17 @@ from typing import Union
 
 
 class DroneState:
+    """
+    Storage class containing every Tello internal variables that are retrieved with the
+    Tello.get_current_state() method.
+
+    In cls.update_state(variables_dict), a class attribute is created (or updated if it already exists)
+    for each field of the input dictionary variables_dict.
+    The class attribute gets the name of the dict key and the value of its corresponding
+    dict element
+
+    The cls.__getDict__() method is used to retrieve only the variables to print in the pygame display window.
+    """
     @classmethod
     def update_state(cls, variables_dict: dict):
         for key in variables_dict:
