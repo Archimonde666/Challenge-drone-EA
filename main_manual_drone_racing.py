@@ -28,7 +28,7 @@ def run():
                                                            rc_height_threshold=40)
 
     # Retrieve UAV front camera frame
-    frame = TelloSensors.run(mode_status)
+    frame, drone_state = TelloSensors.run(mode_status)
 
     # Search for all ARUCO markers in the frame
     markers_status, frame = MarkersDetected.run(frame)
@@ -43,7 +43,7 @@ def run():
     TelloActuators.run(rc_status)
 
     # Update pygame display window
-    variables_to_print = merge_dicts([TelloSensors.__getDict__(),
+    variables_to_print = merge_dicts([drone_state.__getDict__(),
                                       mode_status.__getDict__(),
                                       rc_status.__getDict__(),
                                       marker_status.__getDict__()])
