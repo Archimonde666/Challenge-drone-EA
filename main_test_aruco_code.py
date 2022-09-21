@@ -18,7 +18,9 @@ def setup():
 
 def run():
     # Get user input (keyboard, gamepad, joystick)
-    _, __, ___ = ReadUserInput.run(rc_threshold=40)
+    _, __, ___ = ReadUserInput.run(rc_roll_pitch_threshold=100,
+                                   rc_height_threshold=40,
+                                   rc_yaw_threshold=40)
 
     # Retrieve frame from a connected webcam
     frame = ReadCAM.run()

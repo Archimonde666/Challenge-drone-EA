@@ -14,7 +14,7 @@ class Display:
 
     LEFT_MARGIN: int = 5
     TOP_MARGIN: int = 0
-    INTER_LINE: int = 16
+    INTER_LINE: int = 20
 
     FONT_PANEL_INFO: pygame.font.Font = None
 
