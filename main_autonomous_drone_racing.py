@@ -25,10 +25,12 @@ def setup():
 
 def run():
     # Get user input (keyboard, gamepad, joystick)
-    rc_status_1, key_status, mode_status = ReadUserInput.run(rc_threshold=40)
+    rc_status_1, key_status, mode_status = ReadUserInput.run(rc_roll_pitch_threshold=100,
+                                                             rc_height_threshold=40,
+                                                             rc_yaw_threshold=40)
 
     # Retrieve UAV front camera frame and internal variables
-    frame, drone_status = TelloSensors.run(mode_status)
+    frame = TelloSensors.run(mode_status)
 
     # Search for all ARUCO markers in the frame
     markers_status, frame = MarkersDetected.run(frame)
@@ -53,7 +55,7 @@ def run():
     TelloActuators.run(rc_status)
 
     # Update pygame display window
-    variables_to_print = merge_dicts([drone_status.state,
+    variables_to_print = merge_dicts([TelloSensors.__getDict__(),
                                       mode_status.__getDict__(),
                                       rc_status.__getDict__(),
                                       marker_status.__getDict__()])

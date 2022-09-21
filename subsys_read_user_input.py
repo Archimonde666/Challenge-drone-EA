@@ -70,7 +70,7 @@ class ReadUserInput:
             try:
                 gp_map = [gp['name'] for gp in Gamepad.map_list].index(name)
                 cls.joystick_maps.append(Gamepad.map_list[gp_map])
-                print('Gamepad map successfully loaded for %s', name)
+                print('Gamepad map successfully loaded for', name)
             except ValueError:
                 print('No configured map for connected gamepad -> using default configuration')
                 gp_map = [gp['name'] for gp in Gamepad.map_list].index('Default')
@@ -78,7 +78,11 @@ class ReadUserInput:
             joystick.init()
 
     @classmethod
-    def run(cls, rc_threshold: int) -> (type(RCStatus), type(KeyStatus), type(ModeStatus)):
+    def run(cls,
+            rc_roll_pitch_threshold: int,
+            rc_height_threshold: int,
+            rc_yaw_threshold: int) -> (type(RCStatus), type(KeyStatus), type(ModeStatus)):
+        rc_threshold = [rc_roll_pitch_threshold, rc_height_threshold, rc_yaw_threshold]
         for event in pygame.event.get():
             try:
                 if event.type == pygame.QUIT:
@@ -111,7 +115,7 @@ class ReadUserInput:
         return RCStatus, KeyStatus, ModeStatus
 
     @classmethod
-    def buttons(cls, button: str, rc_threshold: int, key_status: type(KeyStatus)):
+    def buttons(cls, button: str, rc_threshold: List[int], key_status: type(KeyStatus)):
         if button == 'Stop' and key_status.is_pressed:
             RCStatus.a = 0
             RCStatus.b = 0
@@ -125,33 +129,33 @@ class ReadUserInput:
         elif button == 'Land' and key_status.is_pressed:
             ModeStatus.value = MODE.LAND
         elif button == 'Left':
-            RCStatus.a = - key_status.is_pressed * int(rc_threshold)
+            RCStatus.a = - key_status.is_pressed * int(rc_threshold[0])
         elif button == 'Right':
-            RCStatus.a = key_status.is_pressed * int(rc_threshold)
+            RCStatus.a = key_status.is_pressed * int(rc_threshold[0])
         elif button == 'Forward':
-            RCStatus.b = key_status.is_pressed * int(rc_threshold)
+            RCStatus.b = key_status.is_pressed * int(rc_threshold[0])
         elif button == 'Backward':
-            RCStatus.b = - key_status.is_pressed * int(rc_threshold)
+            RCStatus.b = - key_status.is_pressed * int(rc_threshold[0])
         elif button == 'Up':
-            RCStatus.c = key_status.is_pressed * int(rc_threshold)
+            RCStatus.c = key_status.is_pressed * int(rc_threshold[1])
         elif button == 'Down':
-            RCStatus.c = - key_status.is_pressed * int(rc_threshold)
+            RCStatus.c = - key_status.is_pressed * int(rc_threshold[1])
         elif button == 'Yaw+':
-            RCStatus.d = key_status.is_pressed * int(rc_threshold)
+            RCStatus.d = key_status.is_pressed * int(rc_threshold[2])
         elif button == 'Yaw-':
-            RCStatus.d = - key_status.is_pressed * int(rc_threshold)
+            RCStatus.d = - key_status.is_pressed * int(rc_threshold[2])
 
     @classmethod
-    def axis_motion(cls, axis: str, value: float, rc_threshold: int):
+    def axis_motion(cls, axis: str, value: float, rc_threshold: List[int]):
         if axis == 'Roll':
-            RCStatus.a = int(rc_threshold * value)
+            RCStatus.a = int(rc_threshold[0] * value)
         elif axis == 'Pitch':
-            RCStatus.b = - int(rc_threshold * value)
+            RCStatus.b = - int(rc_threshold[0] * value)
         elif axis == 'Height':
-            RCStatus.c = - int(rc_threshold * value)
+            RCStatus.c = - int(rc_threshold[1] * value)
         elif axis == 'Yaw':
-            RCStatus.d = int(rc_threshold * value)
+            RCStatus.d = int(rc_threshold[2] * value)
         elif axis == 'Yaw+':
-            RCStatus.d = int(rc_threshold * 0.5 * (value + 1))
+            RCStatus.d = int(rc_threshold[2] * 0.5 * (value + 1))
         elif axis == 'Yaw-':
-            RCStatus.d = int(rc_threshold * 0.5 * (value - 1))
+            RCStatus.d = int(rc_threshold[2] * 0.5 * (value - 1))
