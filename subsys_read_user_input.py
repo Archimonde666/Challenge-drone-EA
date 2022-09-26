@@ -82,12 +82,16 @@ class ReadUserInput:
             rc_roll_pitch_threshold: int,
             rc_height_threshold: int,
             rc_yaw_threshold: int) -> (type(RCStatus), type(KeyStatus), type(ModeStatus)):
+
         rc_threshold = [rc_roll_pitch_threshold, rc_height_threshold, rc_yaw_threshold]
         for event in pygame.event.get():
             try:
                 if event.type == pygame.QUIT:
                     RunStatus.value = RUN.STOP
                 elif event.type == pygame.JOYAXISMOTION:
+                    if ModeStatus.value == MODE.AUTO_FLIGHT and abs(event.value) > 0.1:
+                        print('User input detected, automatic control module disabled')
+                        ModeStatus.value = MODE.MANUAL_FLIGHT
                     KeyStatus.is_pressed = True
                     axis = cls.joystick_maps[event.joy]['axes'][event.axis]
                     KeyStatus.type_pressed = axis
@@ -128,7 +132,13 @@ class ReadUserInput:
             ModeStatus.value = MODE.TAKEOFF
         elif button == 'Land' and key_status.is_pressed:
             ModeStatus.value = MODE.LAND
-        elif button == 'Left':
+        elif button == 'Automatic flight' and key_status.is_pressed:
+            ModeStatus.value = MODE.AUTO_FLIGHT
+        elif ModeStatus.value == MODE.AUTO_FLIGHT and key_status.is_pressed:
+            ModeStatus.value = MODE.MANUAL_FLIGHT
+            print('User input detected, automatic control module disabled')
+
+        if button == 'Left':
             RCStatus.a = - key_status.is_pressed * int(rc_threshold[0])
         elif button == 'Right':
             RCStatus.a = key_status.is_pressed * int(rc_threshold[0])

@@ -16,31 +16,34 @@ class Gamepad:
                                        pygame.K_z: 'Up',
                                        pygame.K_s: 'Down',
                                        pygame.K_d: 'Yaw+',
-                                       pygame.K_q: 'Yaw-'}
+                                       pygame.K_q: 'Yaw-',
+                                       pygame.K_a: 'Automatic flight'}
                               )
     map_list: List[dict] = [dict(name='Logitech Extreme 3D',
                                  axes={0: 'Roll',
                                        1: 'Pitch',
                                        2: 'Yaw',
                                        3: 'Height'},
-                                 buttons={0: 'Stop',        # Button 1
-                                          1: 'Takeoff',     # Button 2
-                                          2: 'Land',        # Button 3
-                                          3: 'Emergency',   # Button 4
+                                 buttons={0: 'Stop',                # Button 1
+                                          1: 'Takeoff',             # Button 2
+                                          2: 'Land',                # Button 3
+                                          3: 'Emergency',           # Button 4
+                                          10: 'Automatic flight'    # Button 11
                                           }),
 
                             dict(name='Controller (Xbox One For Windows)',
-                                 axes={0: 'Roll',           # Left stick left/right
-                                       1: 'Pitch',          # Left stick up/down
-                                       2: 'Yaw',            # Right stick left/right
-                                       3: 'Height',         # Right stick up/down
+                                 axes={0: 'Yaw',           # Left stick left/right
+                                       1: 'Height',          # Left stick up/down
+                                       2: 'Roll',            # Right stick left/right
+                                       3: 'Pitch',         # Right stick up/down
                                        4: 'Yaw-',           # Left trigger
                                        5: 'Yaw+'            # Right trigger
                                        },
-                                 buttons={0: 'Takeoff',     # A
-                                          1: 'Land',        # B
-                                          2: 'Emergency',   # X
-                                          3: 'Stop',        # Y
+                                 buttons={0: 'Takeoff',             # A
+                                          1: 'Land',                # B
+                                          2: 'Emergency',           # X
+                                          3: 'Stop',                # Y
+                                          4: 'Automatic flight'     # RX
                                           }),
 
                             dict(name='Default',
@@ -51,9 +54,10 @@ class Gamepad:
                                        4: 'Yaw-',           # Left trigger
                                        5: 'Yaw+'            # Right trigger
                                        },
-                                 buttons={0: 'Takeoff',     # A
-                                          1: 'Land',        # B
-                                          2: 'Emergency',   # X
-                                          3: 'Stop',        # Y
+                                 buttons={0: 'Takeoff',             # A
+                                          1: 'Land',                # B
+                                          2: 'Emergency',           # X
+                                          3: 'Stop',                # Y
+                                          4: 'Automatic flight'     # RX
                                           })
                             ]

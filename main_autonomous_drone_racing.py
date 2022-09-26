@@ -24,9 +24,9 @@ def setup():
 
 def run():
     # Get user input (keyboard, gamepad, joystick)
-    rc_status_1, key_status, mode_status = ReadUserInput.run(rc_roll_pitch_threshold=100,
-                                                             rc_height_threshold=20,
-                                                             rc_yaw_threshold=20)
+    rc_status, key_status, mode_status = ReadUserInput.run(rc_roll_pitch_threshold=100,
+                                                           rc_height_threshold=20,
+                                                           rc_yaw_threshold=20)
 
     # Retrieve UAV front camera frame and internal variables
     frame = TelloSensors.run(mode_status)
@@ -41,14 +41,8 @@ def run():
                                            offset=(-4, 0))
 
     # Get the velocity commands from the automatic control module
-    rc_status_2 = VisualControl.run(marker_status)
-
-    # The user input is prioritized -> if the keyboard is used, the automatic control
-    # will not interfere with the manual control commands
-    if key_status.is_pressed:
-        rc_status = rc_status_1
-    else:
-        rc_status = rc_status_2
+    if mode_status.value == parameters.MODE.AUTO_FLIGHT:
+        rc_status = VisualControl.run(marker_status)
 
     # Send the commands to the UAV
     TelloActuators.run(rc_status)
