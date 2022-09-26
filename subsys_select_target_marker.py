@@ -50,7 +50,7 @@ class MarkerStatus:
         cls.width = 0
 
     @classmethod
-    def __getDict__(cls) -> dict:
+    def __get_dict__(cls) -> dict:
         ms: dict = {'id': cls.id,
                     'H_angle': int(cls.h_angle * RAD2DEG),
                     'v_angle': int(cls.v_angle * RAD2DEG),

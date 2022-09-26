@@ -1,4 +1,5 @@
 import math
+from typing import List
 
 
 # color parameters
@@ -35,3 +36,10 @@ class MODE:
 
 class RunStatus:
     value: bool = RUN.STOP
+
+
+def merge_dicts(dict_list: List[dict]) -> dict:
+    merged_dict: dict = {}
+    for dictionary in dict_list:
+        merged_dict.update(dictionary)
+    return merged_dict

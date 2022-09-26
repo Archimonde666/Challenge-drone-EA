@@ -9,38 +9,6 @@ from subsys_visual_control import RCStatus
 from typing import Union
 
 
-class DroneState:
-    """
-    Storage class containing every Tello internal variables that are retrieved with the
-    Tello.get_current_state() method.
-
-    In cls.update_state(variables_dict), a class attribute is created (or updated if it already exists)
-    for each field of the input dictionary variables_dict.
-    The class attribute gets the name of the dict key and the value of its corresponding
-    dict element
-
-    The cls.__getDict__() method is used to retrieve only the variables to print in the pygame display window.
-    """
-    @classmethod
-    def update_state(cls, variables_dict: dict):
-        for key in variables_dict:
-            setattr(cls, key, variables_dict[key])
-
-    @classmethod
-    def __getDict__(cls) -> dict:
-        # Dictionary containing every Tello internal variables that are printed in the pygame display window
-        uav_variables_to_print: dict = {'bat': 0,
-                                        'roll': 0,
-                                        'pitch': 0,
-                                        'yaw': 0}
-        try:
-            for key in uav_variables_to_print:
-                uav_variables_to_print[key] = vars(cls)[key]
-        except KeyError as e:
-            print(e)
-        return uav_variables_to_print
-
-
 class TelloSensors:
     """
     Retrieves the attitude and battery level from onboard Tello sensors
@@ -51,6 +19,10 @@ class TelloSensors:
     CAP: Union[cv2.VideoCapture,
                BackgroundFrameRead] = None
     mode: int = -1
+    battery: int = 0
+    roll: int = 0
+    pitch: int = 0
+    yaw: int = 0
 
     @classmethod
     def setup(cls):
@@ -67,7 +39,7 @@ class TelloSensors:
         cls.TELLO.end()
 
     @classmethod
-    def run(cls, mode_status: ModeStatus) -> (numpy.ndarray, type(DroneState)):
+    def run(cls, mode_status: ModeStatus) -> numpy.ndarray:
         # input
         if mode_status.value == MODE.TAKEOFF:
             cls.TELLO.takeoff()
@@ -79,8 +51,16 @@ class TelloSensors:
             cls.TELLO.emergency()
             mode_status.value = -1
         cls.mode = mode_status.value
-        DroneState.update_state(cls.TELLO.get_current_state())
-        return cls.image(), DroneState
+        cls.update_state()
+        return cls.image()
+
+    @classmethod
+    def update_state(cls):
+        state = cls.TELLO.get_current_state()
+        cls.bat = state['bat']
+        cls.roll = state['roll']
+        cls.pitch = state['pitch']
+        cls.yaw = state['yaw']
 
     @classmethod
     def update_rc(cls, rc_status: RCStatus):
@@ -109,7 +89,13 @@ class TelloSensors:
                 RUN.status = RUN.STOP
         return image
 
-    # Private Methods
+    @classmethod
+    def __get_dict__(cls) -> dict:
+        sensors: dict = {'Battery': cls.battery,
+                         'Roll': cls.roll,
+                         'Pitch': cls.pitch,
+                         'Yaw': cls.yaw}
+        return sensors
 
     @classmethod
     def __init_sim_env(cls):
