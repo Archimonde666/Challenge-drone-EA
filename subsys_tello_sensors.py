@@ -57,7 +57,7 @@ class TelloSensors:
     @classmethod
     def update_state(cls):
         state = cls.TELLO.get_current_state()
-        cls.bat = state['bat']
+        cls.battery = state['bat']
         cls.roll = state['roll']
         cls.pitch = state['pitch']
         cls.yaw = state['yaw']
