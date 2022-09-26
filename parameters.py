@@ -31,7 +31,8 @@ class MODE:
     EMERGENCY: int = 0
     TAKEOFF: int = 1
     LAND: int = 2
-    FLIGHT: int = 3
+    MANUAL_FLIGHT: int = 3
+    AUTO_FLIGHT: int = 4
 
 
 class RunStatus:

@@ -43,7 +43,7 @@ class TelloSensors:
         # input
         if mode_status.value == MODE.TAKEOFF:
             cls.TELLO.takeoff()
-            mode_status.value = MODE.FLIGHT
+            mode_status.value = MODE.MANUAL_FLIGHT
         elif mode_status.value == MODE.LAND:
             cls.TELLO.land()
             mode_status.value = -1
@@ -64,7 +64,7 @@ class TelloSensors:
 
     @classmethod
     def update_rc(cls, rc_status: RCStatus):
-        if cls.mode == MODE.FLIGHT:
+        if cls.mode == MODE.MANUAL_FLIGHT or cls.mode == MODE.AUTO_FLIGHT:
             TelloActuators.update_rc_command(rc_status)
 
     @classmethod
