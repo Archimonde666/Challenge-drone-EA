@@ -28,7 +28,7 @@ class RCStatus:
     d: int = 0  # Yaw velocity
 
     @classmethod
-    def __getDict__(cls) -> dict:
+    def __get_dict__(cls) -> dict:
         rc: dict = {'a': cls.a,
                     'b': cls.b,
                     'c': cls.c,
@@ -44,7 +44,7 @@ class ModeStatus:
     value: int = MODE.LAND
 
     @classmethod
-    def __getDict__(cls) -> dict:
+    def __get_dict__(cls) -> dict:
         ms: dict = {'Mode': cls.value}
         return ms
 
