@@ -9,13 +9,6 @@ from subsys_visual_control import RCStatus
 from typing import Union
 
 
-class DroneStatus:
-    battery = 0
-    roll = 0
-    pitch = 0
-    yaw = 0
-
-
 class TelloSensors:
     """
     Retrieves the attitude and battery level from onboard Tello sensors
@@ -26,6 +19,10 @@ class TelloSensors:
     CAP: Union[cv2.VideoCapture,
                BackgroundFrameRead] = None
     mode: int = -1
+    battery: int = 0
+    roll: int = 0
+    pitch: int = 0
+    yaw: int = 0
 
     @classmethod
     def setup(cls):
@@ -42,29 +39,32 @@ class TelloSensors:
         cls.TELLO.end()
 
     @classmethod
-    def run(cls, mode_status: ModeStatus) -> (numpy.ndarray, type(DroneStatus)):
+    def run(cls, mode_status: ModeStatus) -> numpy.ndarray:
         # input
         if mode_status.value == MODE.TAKEOFF:
             cls.TELLO.takeoff()
-            mode_status.value = MODE.FLIGHT
+            mode_status.value = MODE.MANUAL_FLIGHT
         elif mode_status.value == MODE.LAND:
             cls.TELLO.land()
             mode_status.value = -1
         elif mode_status.value == MODE.EMERGENCY:
             cls.TELLO.emergency()
             mode_status.value = -1
-
         cls.mode = mode_status.value
-        # output
-        DroneStatus.battery = cls.TELLO.get_battery()
-        DroneStatus.roll = cls.TELLO.get_roll()
-        DroneStatus.pitch = cls.TELLO.get_pitch()
-        DroneStatus.yaw = cls.TELLO.get_yaw()
-        return cls.image(), DroneStatus
+        cls.update_state()
+        return cls.image()
+
+    @classmethod
+    def update_state(cls):
+        state = cls.TELLO.get_current_state()
+        cls.battery = state['bat']
+        cls.roll = state['roll']
+        cls.pitch = state['pitch']
+        cls.yaw = state['yaw']
 
     @classmethod
     def update_rc(cls, rc_status: RCStatus):
-        if cls.mode == MODE.FLIGHT:
+        if cls.mode == MODE.MANUAL_FLIGHT or cls.mode == MODE.AUTO_FLIGHT:
             TelloActuators.update_rc_command(rc_status)
 
     @classmethod
@@ -89,7 +89,13 @@ class TelloSensors:
                 RUN.status = RUN.STOP
         return image
 
-    # Private Methods
+    @classmethod
+    def __get_dict__(cls) -> dict:
+        sensors: dict = {'Battery': cls.battery,
+                         'Roll': cls.roll,
+                         'Pitch': cls.pitch,
+                         'Yaw': cls.yaw}
+        return sensors
 
     @classmethod
     def __init_sim_env(cls):

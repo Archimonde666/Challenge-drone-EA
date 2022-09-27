@@ -1,4 +1,5 @@
 import math
+from typing import List
 
 
 # color parameters
@@ -30,8 +31,16 @@ class MODE:
     EMERGENCY: int = 0
     TAKEOFF: int = 1
     LAND: int = 2
-    FLIGHT: int = 3
+    MANUAL_FLIGHT: int = 3
+    AUTO_FLIGHT: int = 4
 
 
 class RunStatus:
     value: bool = RUN.STOP
+
+
+def merge_dicts(dict_list: List[dict]) -> dict:
+    merged_dict: dict = {}
+    for dictionary in dict_list:
+        merged_dict.update(dictionary)
+    return merged_dict

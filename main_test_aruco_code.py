@@ -1,5 +1,5 @@
 import time
-from parameters import RunStatus, FPS, DRONE_POS, RAD2DEG
+import parameters
 from subsys_display_view import Display
 from subsys_read_cam import ReadCAM
 from subsys_read_user_input import ReadUserInput
@@ -16,26 +16,29 @@ def setup():
 
 
 def run():
-    _, __, ___ = ReadUserInput.run(rc_threshold=40)
+    # Get user input (keyboard, gamepad, joystick)
+    _, __, ___ = ReadUserInput.run(rc_roll_pitch_threshold=100,
+                                   rc_height_threshold=40,
+                                   rc_yaw_threshold=40)
+
+    # Retrieve frame from a connected webcam
     frame = ReadCAM.run()
 
+    # Search for all ARUCO markers in the frame
     markers_status, frame = MarkersDetected.run(frame)
+
+    # Select the ARUCO marker to reach first
     marker_status = SelectTargetMarker.run(frame,
                                            markers_status,
-                                           DRONE_POS,
+                                           parameters.DRONE_POS,
                                            offset=(0, 0))
 
-    Display.run(frame,
-                id=marker_status.id,
-                H_angle=int(marker_status.h_angle * RAD2DEG),
-                v_angle=int(marker_status.v_angle * RAD2DEG),
-                m_angle=int(marker_status.m_angle * RAD2DEG),
-                m_distance=marker_status.m_distance,
-                m_height=marker_status.height,
-                m_width=marker_status.width,
-                )
+    # Update pygame display window
+    variables_to_print = parameters.merge_dicts([marker_status.__getDict__()])
+    Display.run(frame, variables_to_print)
 
-    time.sleep(1 / FPS)
+    # Wait for a new frame to be available
+    time.sleep(1 / parameters.FPS)
 
 
 def stop():
@@ -47,6 +50,6 @@ def stop():
 
 if __name__ == "__main__":
     setup()
-    while RunStatus.value:
+    while parameters.RunStatus.value:
         run()
     stop()
