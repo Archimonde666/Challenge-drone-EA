@@ -11,7 +11,6 @@ from subsys_visual_control import VisualControl
 
 
 def setup():
-    parameters.ENV.status = parameters.ENV.SIMULATION
     TelloSensors.setup()
     TelloSensors.TELLO.LOGGER.setLevel(logging.WARN)
     TelloActuators.setup(TelloSensors.TELLO)
