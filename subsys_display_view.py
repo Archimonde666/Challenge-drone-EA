@@ -1,28 +1,31 @@
+import numpy
 import pygame
-import numpy as np
 from parameters import RED, IMG_SIZE, SCREEN_SIZE
+from typing import Any
 
 
 class Display:
+    """
+    Displays the frame acquired by the Tello camera and the marker detection results
+    on a pygame window
+    """
     # Parameters
-    SCREEN = None
+    SCREEN: pygame.Surface = None
 
-    LEFT_MARGIN = 5
-    TOP_MARGIN = 0
-    INTER_LINE = 20
+    LEFT_MARGIN: int = 5
+    TOP_MARGIN: int = 0
+    INTER_LINE: int = 20
 
-    FONT_PANEL_INFO = None
+    FONT_PANEL_INFO: pygame.font.Font = None
 
     # global Variables
-    pos_img_in_screen = 0
-    current_line = TOP_MARGIN
-    log_dict = {}
+    pos_img_in_screen: tuple = (0, 0)
+    current_line: int = TOP_MARGIN
+    log_dict: dict = {}
 
     @classmethod
-    def _log(cls, title, value):
+    def _log(cls, title: str, value: Any):
         """ We use the title argument as key in dictionary to save the position of the log in screen"""
-        next_line = cls.current_line + cls.INTER_LINE
-        position = (cls.LEFT_MARGIN, next_line)
         if title in cls.log_dict:
             cls.log_dict[title]['value'] = value
         else:
@@ -55,16 +58,16 @@ class Display:
         pass
 
     @classmethod
-    def run(cls, frame, **karg):
+    def run(cls, frame: numpy.ndarray, variables_dict: dict):
 
         cls.SCREEN.fill([0, 0, 0])
 
         # cls._log("Battery:", f"{DRONE_STATUS.battery}%")
-        for key in karg:
-            cls._log(f"{key}: ", f"{karg[key]}")
+        for key in variables_dict:
+            cls._log(f"{key}: ", f"{variables_dict[key]}")
 
-        frame = np.rot90(frame)
-        frame = np.flipud(frame)
+        frame = numpy.rot90(frame)
+        frame = numpy.flipud(frame)
         frame = pygame.surfarray.make_surface(frame)
 
         cls._update_log()
