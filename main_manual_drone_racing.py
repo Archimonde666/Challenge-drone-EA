@@ -1,7 +1,6 @@
 import logging
 import time
 import parameters
-from parameters import ENV
 from subsys_display_view import Display
 from subsys_read_user_input import ReadUserInput
 from subsys_markers_detected import MarkersDetected
