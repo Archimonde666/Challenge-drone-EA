@@ -1,6 +1,7 @@
 import logging
 import time
 import parameters
+from parameters import ENV
 from subsys_display_view import Display
 from subsys_read_user_input import ReadUserInput
 from subsys_markers_detected import MarkersDetected
@@ -10,7 +11,6 @@ from subsys_tello_actuators import TelloActuators
 
 
 def setup():
-    parameters.ENV.status = parameters.ENV.SIMULATION
     TelloSensors.setup()
     TelloSensors.TELLO.LOGGER.setLevel(logging.WARN)
     TelloActuators.setup(TelloSensors.TELLO)
