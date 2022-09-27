@@ -22,7 +22,6 @@ class ENV:
     status: int = SIMULATION
 
 
-
 class RUN:
     STOP: bool = False
     START: bool = True
