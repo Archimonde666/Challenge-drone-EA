@@ -10,7 +10,6 @@ from subsys_tello_actuators import TelloActuators
 from subsys_visual_control import VisualControl
 
 
-
 def setup():
     TelloSensors.setup()
     TelloSensors.TELLO.LOGGER.setLevel(logging.WARN)
