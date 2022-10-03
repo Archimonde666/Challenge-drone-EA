@@ -1,3 +1,5 @@
+import asyncio
+
 from parameters import RunStatus, RUN, MODE
 from subsys_gamepad import Gamepad
 from typing import List
@@ -57,9 +59,14 @@ class ReadUserInput:
 
     joysticks: List[pygame.joystick.Joystick] = []
     joystick_maps: List[dict] = []
+    rc_threshold: 3*[int] = [100, 100, 100]
 
     @classmethod
-    def setup(cls):
+    def setup(cls,
+              rc_roll_pitch_threshold: int = 100,
+              rc_height_threshold: int = 20,
+              rc_yaw_threshold: int = 20) -> (type(RCStatus), type(KeyStatus), type(ModeStatus)):
+        cls.rc_threshold = [rc_roll_pitch_threshold, rc_height_threshold, rc_yaw_threshold]
         RunStatus.value = RUN.START
         ModeStatus.value = -1
         pygame.joystick.init()
@@ -78,13 +85,10 @@ class ReadUserInput:
             joystick.init()
 
     @classmethod
-    def run(cls,
-            rc_roll_pitch_threshold: int,
-            rc_height_threshold: int,
-            rc_yaw_threshold: int) -> (type(RCStatus), type(KeyStatus), type(ModeStatus)):
-
-        rc_threshold = [rc_roll_pitch_threshold, rc_height_threshold, rc_yaw_threshold]
-        for event in pygame.event.get():
+    async def run(cls, event_queue: asyncio.Queue):
+        while True:
+            event = await event_queue.get()
+            print(event)
             try:
                 if event.type == pygame.QUIT:
                     RunStatus.value = RUN.STOP
@@ -95,12 +99,12 @@ class ReadUserInput:
                     KeyStatus.is_pressed = True
                     axis = cls.joystick_maps[event.joy]['axes'][event.axis]
                     KeyStatus.type_pressed = axis
-                    cls.axis_motion(axis, event.value, rc_threshold)
+                    cls.axis_motion(axis, event.value)
                 elif event.type == pygame.JOYBUTTONDOWN:
                     KeyStatus.is_pressed = True
                     button = cls.joystick_maps[event.joy]['buttons'][event.button]
                     KeyStatus.type_pressed = button
-                    cls.buttons(button, rc_threshold, KeyStatus)
+                    cls.buttons(button, KeyStatus)
                 elif event.type == pygame.JOYBUTTONUP:
                     KeyStatus.is_pressed = False
                     KeyStatus.type_pressed = None
@@ -108,18 +112,17 @@ class ReadUserInput:
                     KeyStatus.is_pressed = True
                     button = Gamepad.keyboard_map['buttons'][event.key]
                     KeyStatus.type_pressed = button
-                    cls.buttons(button, rc_threshold, KeyStatus)
+                    cls.buttons(button, KeyStatus)
                 elif event.type == pygame.KEYUP:
                     KeyStatus.is_pressed = False
                     button = Gamepad.keyboard_map['buttons'][event.key]
                     KeyStatus.type_pressed = None
-                    cls.buttons(button, rc_threshold, KeyStatus)
+                    cls.buttons(button, KeyStatus)
             except KeyError as e:
                 print('No axis/button/key found with index', e, 'in the Gamepad map')
-        return RCStatus, KeyStatus, ModeStatus
 
     @classmethod
-    def buttons(cls, button: str, rc_threshold: List[int], key_status: type(KeyStatus)):
+    def buttons(cls, button: str, key_status: type(KeyStatus)):
         if button == 'Stop' and key_status.is_pressed:
             RCStatus.a = 0
             RCStatus.b = 0
@@ -139,33 +142,39 @@ class ReadUserInput:
             print('User input detected, automatic control module disabled')
 
         if button == 'Left':
-            RCStatus.a = - key_status.is_pressed * int(rc_threshold[0])
+            RCStatus.a = - key_status.is_pressed * int(cls.rc_threshold[0])
         elif button == 'Right':
-            RCStatus.a = key_status.is_pressed * int(rc_threshold[0])
+            RCStatus.a = key_status.is_pressed * int(cls.rc_threshold[0])
         elif button == 'Forward':
-            RCStatus.b = key_status.is_pressed * int(rc_threshold[0])
+            RCStatus.b = key_status.is_pressed * int(cls.rc_threshold[0])
         elif button == 'Backward':
-            RCStatus.b = - key_status.is_pressed * int(rc_threshold[0])
+            RCStatus.b = - key_status.is_pressed * int(cls.rc_threshold[0])
         elif button == 'Up':
-            RCStatus.c = key_status.is_pressed * int(rc_threshold[1])
+            RCStatus.c = key_status.is_pressed * int(cls.rc_threshold[1])
         elif button == 'Down':
-            RCStatus.c = - key_status.is_pressed * int(rc_threshold[1])
+            RCStatus.c = - key_status.is_pressed * int(cls.rc_threshold[1])
         elif button == 'Yaw+':
-            RCStatus.d = key_status.is_pressed * int(rc_threshold[2])
+            RCStatus.d = key_status.is_pressed * int(cls.rc_threshold[2])
         elif button == 'Yaw-':
-            RCStatus.d = - key_status.is_pressed * int(rc_threshold[2])
+            RCStatus.d = - key_status.is_pressed * int(cls.rc_threshold[2])
 
     @classmethod
-    def axis_motion(cls, axis: str, value: float, rc_threshold: List[int]):
+    def axis_motion(cls, axis: str, value: float):
         if axis == 'Roll':
-            RCStatus.a = int(rc_threshold[0] * value)
+            RCStatus.a = int(cls.rc_threshold[0] * value)
         elif axis == 'Pitch':
-            RCStatus.b = - int(rc_threshold[0] * value)
+            RCStatus.b = - int(cls.rc_threshold[0] * value)
         elif axis == 'Height':
-            RCStatus.c = - int(rc_threshold[1] * value)
+            RCStatus.c = - int(cls.rc_threshold[1] * value)
         elif axis == 'Yaw':
-            RCStatus.d = int(rc_threshold[2] * value)
+            RCStatus.d = int(cls.rc_threshold[2] * value)
         elif axis == 'Yaw+':
-            RCStatus.d = int(rc_threshold[2] * 0.5 * (value + 1))
+            RCStatus.d = int(cls.rc_threshold[2] * 0.5 * (value + 1))
         elif axis == 'Yaw-':
-            RCStatus.d = int(rc_threshold[2] * 0.5 * (value - 1))
+            RCStatus.d = int(cls.rc_threshold[2] * 0.5 * (value - 1))
+
+
+def pygame_event_loop_check(loop: asyncio.ProactorEventLoop, event_queue: asyncio.Queue):
+    while True:
+        event = pygame.event.wait()
+        asyncio.run_coroutine_threadsafe(event_queue.put(event), loop=loop)

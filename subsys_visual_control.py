@@ -51,8 +51,6 @@ class VisualControl:
         # Up/Down velocity control
         RCStatus.c = 0
 
-        return RCStatus
-
     @classmethod
     def stop(cls):
         pass

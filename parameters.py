@@ -18,7 +18,6 @@ SCREEN_SIZE: tuple = (800, 480)
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
-    DEBUG: int = 2
     status: int = SIMULATION
 
 

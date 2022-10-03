@@ -80,7 +80,7 @@ class SelectTargetMarker:
         pass
 
     @classmethod
-    def run(cls, frame: numpy.ndarray, markers: DetectedMarkersStatus,
+    def run(cls, frame: numpy.ndarray, markers: type(DetectedMarkersStatus),
             drone_pos: tuple, offset: tuple = (0, 0)) -> type(MarkerStatus):
 
         cls.drone_pos = drone_pos
