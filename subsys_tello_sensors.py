@@ -1,9 +1,8 @@
-import av
 import cv2
 import numpy
 
-from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead, TelloException
-from parameters import MODE, IMG_SIZE
+from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
+from parameters import MODE, IMG_SIZE, RUN, RunStatus
 from subsys_read_user_input import ModeStatus
 from subsys_tello_actuators import TelloActuators
 from subsys_visual_control import RCStatus
@@ -17,6 +16,7 @@ class TelloSensors:
     """
 
     tello: Tello = None
+    frame_reader = None
     CAP: Union[cv2.VideoCapture,
                BackgroundFrameRead] = None
     battery: int = 0
@@ -27,11 +27,17 @@ class TelloSensors:
     frame: numpy.ndarray = numpy.ndarray(IMG_SIZE)
 
     @classmethod
-    def setup(cls, tello: Tello):
+    def setup(cls, tello: Tello, frame_reader: BackgroundFrameRead):
         cls.tello = tello
+        cls.frame_reader = frame_reader
 
     @classmethod
     def run(cls):
+        if cls.frame_reader.stopped:
+            RunStatus.value = RUN.STOP
+        else:
+            cls.frame = cls.frame_reader.frame
+
         if ModeStatus.value == MODE.TAKEOFF:
             ModeStatus.value = MODE.MANUAL_FLIGHT
             cls.tello.takeoff()
@@ -50,22 +56,6 @@ class TelloSensors:
         cls.roll = state['roll']
         cls.pitch = state['pitch']
         cls.yaw = state['yaw']
-
-    @classmethod
-    def update_frame(cls):
-        """Thread worker function to retrieve frames using PyAV
-        Internal method, you normally wouldn't call this yourself.
-        """
-        # noinspection PyUnresolvedReferences
-        try:
-            for frame in cls.tello.container.decode(video=0):
-                cls.frame = numpy.array(frame.to_image())
-                if cls.tello.stopped:
-                    cls.tello.container.close()
-                    break
-        except av.error.ExitError:
-            raise TelloException('Do not have enough frames for decoding, please try again or increase video fps '
-                                 'before get_frame_read()')
 
     @classmethod
     def update_rc(cls, rc_status: RCStatus):

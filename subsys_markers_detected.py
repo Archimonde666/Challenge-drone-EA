@@ -1,7 +1,6 @@
 import cv2
 import numpy
 from typing import List
-# from subsys_tello_sensors import TelloSensors
 
 
 class DetectedMarkersStatus:
@@ -21,10 +20,6 @@ class MarkersDetected:
     PARAM_DRAW_MARKERS: bool = True
 
     @classmethod
-    def setup(cls):
-        pass
-
-    @classmethod
     def run(cls, frame: numpy.ndarray) -> numpy.ndarray:
         cp_frame = frame.copy()
         corners, ids = cls.__find_markers(cp_frame)
@@ -35,12 +30,7 @@ class MarkersDetected:
         return cp_frame
 
     @classmethod
-    def stop(cls):
-        pass
-
-    @classmethod
     def __find_markers(cls, frame: numpy.ndarray) -> (List[tuple], List[int]):
-        # Our operations on the frame come here
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_100)
         parameters = cv2.aruco.DetectorParameters_create()

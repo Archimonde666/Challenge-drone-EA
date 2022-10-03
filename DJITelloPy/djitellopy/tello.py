@@ -417,7 +417,7 @@ class Tello:
         """
         if self.background_frame_read is None:
             address = self.get_udp_video_address()
-            self.background_frame_read = BackgroundFrameRead(self, address)
+            self.background_frame_read = BackgroundFrameRead(address, self.update_frame_method)
             self.background_frame_read.start()
         return self.background_frame_read
 
@@ -1039,9 +1039,10 @@ class BackgroundFrameRead:
     backgroundFrameRead.frame to get the current frame.
     """
 
-    def __init__(self, tello, address):
+    def __init__(self, address, frame_update_callback=None):
         self.address = address
         self.frame = np.zeros([300, 400, 3], dtype=np.uint8)
+        self.frame_update_callback = frame_update_callback
 
         # Try grabbing frame with PyAV
         # According to issue #90 the decoder might need some time
@@ -1055,10 +1056,7 @@ class BackgroundFrameRead:
                 'Failed to grab video frames from video stream')
 
         self.stopped = False
-        if tello.update_frame_method is not None:
-            self.worker = Thread(target=tello.update_frame_method, args=(), daemon=True)
-        else:
-            self.worker = Thread(target=self.update_frame, args=(), daemon=True)
+        self.worker = Thread(target=self.update_frame, args=(), daemon=True)
 
     def start(self):
         """Start the frame update worker
@@ -1070,12 +1068,15 @@ class BackgroundFrameRead:
         """Thread worker function to retrieve frames using PyAV
         Internal method, you normally wouldn't call this yourself.
         """
+
         try:
             for frame in self.container.decode(video=0):
                 self.frame = np.array(frame.to_image())
                 if self.stopped:
                     self.container.close()
                     break
+                if self.frame_update_callback is not None:
+                    self.frame_update_callback()
         except av.error.ExitError:
             raise TelloException('Do not have enough frames for decoding, please try again or increase video'
                                  ' fps before get_frame_read()')

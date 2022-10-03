@@ -1,5 +1,3 @@
-import asyncio
-
 from parameters import RunStatus, RUN, MODE
 from subsys_gamepad import Gamepad
 from typing import List
@@ -60,6 +58,8 @@ class ReadUserInput:
     joysticks: List[pygame.joystick.Joystick] = []
     joystick_maps: List[dict] = []
     rc_threshold: 3*[int] = [100, 100, 100]
+    # worker = None
+    stopped = False
 
     @classmethod
     def setup(cls,
@@ -85,41 +85,48 @@ class ReadUserInput:
             joystick.init()
 
     @classmethod
-    async def run(cls, event_queue: asyncio.Queue):
-        while True:
-            event = await event_queue.get()
-            print(event)
-            try:
-                if event.type == pygame.QUIT:
-                    RunStatus.value = RUN.STOP
-                elif event.type == pygame.JOYAXISMOTION:
-                    if ModeStatus.value == MODE.AUTO_FLIGHT and abs(event.value) > 0.1:
-                        print('User input detected, automatic control module disabled')
-                        ModeStatus.value = MODE.MANUAL_FLIGHT
-                    KeyStatus.is_pressed = True
-                    axis = cls.joystick_maps[event.joy]['axes'][event.axis]
-                    KeyStatus.type_pressed = axis
-                    cls.axis_motion(axis, event.value)
-                elif event.type == pygame.JOYBUTTONDOWN:
-                    KeyStatus.is_pressed = True
-                    button = cls.joystick_maps[event.joy]['buttons'][event.button]
-                    KeyStatus.type_pressed = button
-                    cls.buttons(button, KeyStatus)
-                elif event.type == pygame.JOYBUTTONUP:
-                    KeyStatus.is_pressed = False
-                    KeyStatus.type_pressed = None
-                elif event.type == pygame.KEYDOWN:
-                    KeyStatus.is_pressed = True
-                    button = Gamepad.keyboard_map['buttons'][event.key]
-                    KeyStatus.type_pressed = button
-                    cls.buttons(button, KeyStatus)
-                elif event.type == pygame.KEYUP:
-                    KeyStatus.is_pressed = False
-                    button = Gamepad.keyboard_map['buttons'][event.key]
-                    KeyStatus.type_pressed = None
-                    cls.buttons(button, KeyStatus)
-            except KeyError as e:
-                print('No axis/button/key found with index', e, 'in the Gamepad map')
+    def run_pygame_loop(cls):
+        while not cls.stopped:
+            for event in pygame.event.get():
+                cls.run(event)
+            pygame.display.update()
+            if RunStatus.value == RUN.STOP:
+                break
+        return 1
+
+    @classmethod
+    def run(cls, event):
+        try:
+            if event.type == pygame.QUIT:
+                RunStatus.value = RUN.STOP
+            elif event.type == pygame.JOYAXISMOTION:
+                if ModeStatus.value == MODE.AUTO_FLIGHT and abs(event.value) > 0.1:
+                    print('User input detected, automatic control module disabled')
+                    ModeStatus.value = MODE.MANUAL_FLIGHT
+                KeyStatus.is_pressed = True
+                axis = cls.joystick_maps[event.joy]['axes'][event.axis]
+                KeyStatus.type_pressed = axis
+                cls.axis_motion(axis, event.value)
+            elif event.type == pygame.JOYBUTTONDOWN:
+                KeyStatus.is_pressed = True
+                button = cls.joystick_maps[event.joy]['buttons'][event.button]
+                KeyStatus.type_pressed = button
+                cls.buttons(button, KeyStatus)
+            elif event.type == pygame.JOYBUTTONUP:
+                KeyStatus.is_pressed = False
+                KeyStatus.type_pressed = None
+            elif event.type == pygame.KEYDOWN:
+                KeyStatus.is_pressed = True
+                button = Gamepad.keyboard_map['buttons'][event.key]
+                KeyStatus.type_pressed = button
+                cls.buttons(button, KeyStatus)
+            elif event.type == pygame.KEYUP:
+                KeyStatus.is_pressed = False
+                button = Gamepad.keyboard_map['buttons'][event.key]
+                KeyStatus.type_pressed = None
+                cls.buttons(button, KeyStatus)
+        except KeyError as e:
+            print('No axis/button/key found with index', e, 'in the Gamepad map')
 
     @classmethod
     def buttons(cls, button: str, key_status: type(KeyStatus)):
@@ -173,8 +180,6 @@ class ReadUserInput:
         elif axis == 'Yaw-':
             RCStatus.d = int(cls.rc_threshold[2] * 0.5 * (value - 1))
 
-
-def pygame_event_loop_check(loop: asyncio.ProactorEventLoop, event_queue: asyncio.Queue):
-    while True:
-        event = pygame.event.wait()
-        asyncio.run_coroutine_threadsafe(event_queue.put(event), loop=loop)
+    @classmethod
+    def stop(cls):
+        cls.stopped = True
