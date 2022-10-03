@@ -71,11 +71,13 @@ def image_processing():
 
 def stop():
     TelloActuators.stop()
-    SelectTargetMarker.stop()
     ReadUserInput.stop()
 
 
 if __name__ == "__main__":
     setup()
+    # The run_pygame_loop() is a while loop that breaks only when the flight is finished
+    # This loop constantly checks for new user inputs, and updates the
+    # pygame window with the latest available frame
     flight_finished = ReadUserInput.run_pygame_loop()
     stop()

@@ -76,10 +76,6 @@ class SelectTargetMarker:
         MarkerStatus.reset()
 
     @classmethod
-    def stop(cls):
-        pass
-
-    @classmethod
     def run(cls, frame: numpy.ndarray, markers: type(DetectedMarkersStatus),
             drone_pos: tuple, offset: tuple = (0, 0)) -> type(MarkerStatus):
 
