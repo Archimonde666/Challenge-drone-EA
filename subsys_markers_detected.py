@@ -11,7 +11,6 @@ class DetectedMarkersStatus:
     ids = []
 
 
-# subsystem
 class MarkersDetector:
     """
     Detects every marker on the frame coming from the Tello front camera,
