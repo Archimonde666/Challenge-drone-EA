@@ -12,7 +12,6 @@ from subsys_visual_control import VisualControl
 
 def setup():
     Display.setup()
-    VisualControl.setup()
     ReadUserInput.setup()
     SelectTargetMarker.setup()
 
@@ -71,7 +70,6 @@ def image_processing():
 
 def stop():
     TelloActuators.stop()
-    ReadUserInput.stop()
 
 
 if __name__ == "__main__":

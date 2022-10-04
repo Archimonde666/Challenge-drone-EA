@@ -58,8 +58,6 @@ class ReadUserInput:
     joysticks: List[pygame.joystick.Joystick] = []
     joystick_maps: List[dict] = []
     rc_threshold: 3*[int] = [100, 100, 100]
-    # worker = None
-    stopped = False
 
     @classmethod
     def setup(cls,
@@ -86,7 +84,7 @@ class ReadUserInput:
 
     @classmethod
     def run_pygame_loop(cls):
-        while not cls.stopped:
+        while True:
             for event in pygame.event.get():
                 cls.run(event)
             pygame.display.update()
@@ -179,7 +177,3 @@ class ReadUserInput:
             RCStatus.d = int(cls.rc_threshold[2] * 0.5 * (value + 1))
         elif axis == 'Yaw-':
             RCStatus.d = int(cls.rc_threshold[2] * 0.5 * (value - 1))
-
-    @classmethod
-    def stop(cls):
-        cls.stopped = True
