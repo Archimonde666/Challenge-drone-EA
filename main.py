@@ -14,11 +14,11 @@ def setup():
     Display.setup()
     ReadUserInput.setup()
     SelectTargetMarker.setup()
-
     tello, frame_reader = init_env()
     tello.LOGGER.setLevel(logging.WARN)
     TelloActuators.setup(tello)
     TelloSensors.setup(tello, frame_reader)
+    return 1
 
 
 def init_env() -> (Tello, BackgroundFrameRead):
@@ -43,7 +43,7 @@ def init_env() -> (Tello, BackgroundFrameRead):
 
 
 def image_processing():
-    if TelloActuators.tello is not None and TelloSensors.tello is not None:
+    if setup_finished:
         # Retrieve UAV front camera frame and internal variables
         TelloSensors.run()
         # Search for all ARUCO markers in the frame
@@ -51,7 +51,6 @@ def image_processing():
         # Select the ARUCO marker to reach first
         marker_status = SelectTargetMarker.run(frame,
                                                DetectedMarkersStatus,
-                                               parameters.DRONE_POS,
                                                offset=(-4, 0))
         # Get the velocity commands from the automatic control module
         if ModeStatus.value == parameters.MODE.AUTO_FLIGHT:
@@ -73,7 +72,7 @@ def stop():
 
 
 if __name__ == "__main__":
-    setup()
+    setup_finished = setup()
     # The run_pygame_loop() is a while loop that breaks only when the flight is finished
     # This loop constantly checks for new user inputs, and updates the
     # pygame window with the latest available frame

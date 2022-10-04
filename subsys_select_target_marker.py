@@ -1,6 +1,7 @@
 import cv2
 import numpy
-from parameters import RED, BLUE, RAD2DEG
+
+from parameters import RED, BLUE, RAD2DEG, DRONE_POS
 from subsys_markers_detected import DetectedMarkersStatus
 from typing import List
 
@@ -67,7 +68,6 @@ class SelectTargetMarker:
     then returns the corresponding MarkerStatus class filled with the position of the Tello relatively
     to this marker
     """
-    drone_pos: tuple = (0.0, 0.0)
     marker_pos: tuple = (0.0, 0.0)
     offset: tuple = (0, 0)
 
@@ -77,9 +77,8 @@ class SelectTargetMarker:
 
     @classmethod
     def run(cls, frame: numpy.ndarray, markers: type(DetectedMarkersStatus),
-            drone_pos: tuple, offset: tuple = (0, 0)) -> type(MarkerStatus):
+            offset: tuple = (0, 0)) -> type(MarkerStatus):
 
-        cls.drone_pos = drone_pos
         target_marker_id, corners = cls._get_marker_with_min_id(markers)
         if target_marker_id == -1:
             MarkerStatus.reset()
@@ -102,8 +101,9 @@ class SelectTargetMarker:
         cls.offset = (int(offset[0]*width), int(offset[1]*height))
         cls.marker_pos = (center_pt[0] + cls.offset[0],
                           center_pt[1] + cls.offset[1])
-        m_angle = cls._angle_between(drone_pos,  cls.marker_pos, vertical=True)
-        m_distance = cls._length_segment(drone_pos, cls.marker_pos)
+        # DRONE_POS is a tuple (x, y) that represents the position of the UAV on the pygame display
+        m_angle = cls._angle_between(DRONE_POS,  cls.marker_pos, vertical=True)
+        m_distance = cls._length_segment(DRONE_POS, cls.marker_pos)
 
         cls.draw(frame)
 
@@ -199,8 +199,8 @@ class SelectTargetMarker:
                  right_pt_with_offset,
                  RED, 2)
 
-        if cls.drone_pos[0] != 0:
+        if DRONE_POS[0] != 0:
             cv2.line(frame,
-                     cls.drone_pos,
+                     DRONE_POS,
                      cls.marker_pos,
                      BLUE, 2)
