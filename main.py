@@ -3,7 +3,7 @@ import parameters
 from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
 from subsys_display_view import Display
 from subsys_read_user_input import ReadUserInput, ModeStatus, RCStatus
-from subsys_markers_detected import MarkersDetected, DetectedMarkersStatus
+from subsys_markers_detected import MarkersDetector, DetectedMarkersStatus
 from subsys_select_target_marker import SelectTargetMarker
 from subsys_tello_sensors import TelloSensors
 from subsys_tello_actuators import TelloActuators
@@ -47,7 +47,7 @@ def image_processing():
         # Retrieve UAV front camera frame and internal variables
         TelloSensors.run()
         # Search for all ARUCO markers in the frame
-        frame = MarkersDetected.run(TelloSensors.frame)
+        frame = MarkersDetector.run(TelloSensors.frame)
         # Select the ARUCO marker to reach first
         marker_status = SelectTargetMarker.run(frame,
                                                DetectedMarkersStatus,

@@ -12,7 +12,7 @@ class DetectedMarkersStatus:
 
 
 # subsystem
-class MarkersDetected:
+class MarkersDetector:
     """
     Detects every marker on the frame coming from the Tello front camera,
     then returns a single DetectedMarkersStatus class containing data for all detected markers
