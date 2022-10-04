@@ -1,8 +1,11 @@
 import math
-from typing import List
+from typing import List, NewType
 
 
-# color parameters
+Distance = NewType('Pixels', float)
+Angle = NewType('Radians', float)
+ScreenPosition = NewType('tuple(Pixels, Pixels)', tuple[int, int])
+
 RED: tuple = (255, 0, 0)
 BLUE: tuple = (0, 0, 255)
 
@@ -11,7 +14,7 @@ RAD2DEG: float = 180/math.pi
 
 FPS: int = 120
 IMG_SIZE: tuple = (640, 480)
-DRONE_POS: tuple = (IMG_SIZE[0]//2, 480)
+DRONE_POS: ScreenPosition = ScreenPosition((IMG_SIZE[0]//2, 480))
 SCREEN_SIZE: tuple = (800, 480)
 
 

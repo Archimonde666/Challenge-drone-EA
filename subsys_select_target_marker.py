@@ -1,7 +1,7 @@
 import cv2
 import numpy
 
-from parameters import RED, BLUE, RAD2DEG, DRONE_POS
+from parameters import RED, BLUE, RAD2DEG, DRONE_POS, Distance, Angle, ScreenPosition
 from subsys_markers_detected import DetectedMarkersStatus
 from typing import List
 
@@ -12,43 +12,43 @@ class MarkerStatus:
     """
 
     id: int = -1
-    corners: List[tuple] = []
+    corners: List[ScreenPosition] = []
 
     # Origin axis
-    center_pt: tuple = (0, 0)
+    center_pt: ScreenPosition = ScreenPosition((0, 0))
     # Horizontal axis
-    top_pt: tuple = (0, 0)
-    bottom_pt: tuple = (0, 0)
+    top_pt: ScreenPosition = ScreenPosition((0, 0))
+    bottom_pt: ScreenPosition = ScreenPosition((0, 0))
     # Vertical axis
-    left_pt: tuple = (0, 0)
-    right_pt: tuple = (0, 0)
+    left_pt: ScreenPosition = ScreenPosition((0, 0))
+    right_pt: ScreenPosition = ScreenPosition((0, 0))
 
     # Horizontal angle
-    h_angle: float = 0
+    h_angle: Angle = Angle(0)
     # Vertical angle
-    v_angle: float = 0
+    v_angle: Angle = Angle(0)
     # angle and distance between marker and drone
-    m_angle: float = 0
-    m_distance: int = 0
+    m_angle: Angle = Angle(0)
+    m_distance: Distance = Distance(0)
 
-    height: int = 0
-    width: int = 0
+    height: Distance = Distance(0)
+    width: Distance = Distance(0)
 
     @classmethod
     def reset(cls):
         cls.id = -1
         cls.corners = []
-        cls.center_pt = (0, 0)
-        cls.top_pt = (0, 0)
-        cls.bottom_pt = (0, 0)
-        cls.left_pt = (0, 0)
-        cls.right_pt = (0, 0)
-        cls.h_angle = 0
-        cls.v_angle = 0
-        cls.m_angle = 0
-        cls.m_distance = 0
-        cls.height = 0
-        cls.width = 0
+        cls.center_pt = ScreenPosition((0, 0))
+        cls.top_pt = ScreenPosition((0, 0))
+        cls.bottom_pt = ScreenPosition((0, 0))
+        cls.left_pt = ScreenPosition((0, 0))
+        cls.right_pt = ScreenPosition((0, 0))
+        cls.h_angle = Angle(0)
+        cls.v_angle = Angle(0)
+        cls.m_angle = Angle(0)
+        cls.m_distance = Distance(0)
+        cls.height = Distance(0)
+        cls.width = Distance(0)
 
     @classmethod
     def __get_dict__(cls) -> dict:
@@ -68,7 +68,7 @@ class SelectTargetMarker:
     then returns the corresponding MarkerStatus class filled with the position of the Tello relatively
     to this marker
     """
-    marker_pos: tuple = (0.0, 0.0)
+    marker_pos: ScreenPosition = (0.0, 0.0)
     offset: tuple = (0, 0)
 
     @classmethod
@@ -93,16 +93,16 @@ class SelectTargetMarker:
         top_pt = cls._get_midpoint([tl, tr])
 
         height = cls._length_segment(bottom_pt, top_pt)
-        width = cls._length_segment(left_pt,   right_pt)
+        width = cls._length_segment(left_pt, right_pt)
 
         h_angle = cls._angle_between(left_pt, right_pt)
         v_angle = cls._angle_between(top_pt, bottom_pt, vertical=True)
 
-        cls.offset = (int(offset[0]*width), int(offset[1]*height))
-        cls.marker_pos = (center_pt[0] + cls.offset[0],
-                          center_pt[1] + cls.offset[1])
+        cls.offset = (int(offset[0] * width), int(offset[1] * height))
+        cls.marker_pos = ScreenPosition((center_pt[0] + cls.offset[0],
+                                         center_pt[1] + cls.offset[1]))
         # DRONE_POS is a tuple (x, y) that represents the position of the UAV on the pygame display
-        m_angle = cls._angle_between(DRONE_POS,  cls.marker_pos, vertical=True)
+        m_angle = cls._angle_between(DRONE_POS, cls.marker_pos, vertical=True)
         m_distance = cls._length_segment(DRONE_POS, cls.marker_pos)
 
         cls.draw(frame)
@@ -124,7 +124,7 @@ class SelectTargetMarker:
         return MarkerStatus
 
     @staticmethod
-    def _get_marker_with_min_id(markers: DetectedMarkersStatus) -> (int, List[tuple]):
+    def _get_marker_with_min_id(markers: DetectedMarkersStatus) -> (int, List[ScreenPosition]):
         target_id = -1
         target_corners = []
 
@@ -140,33 +140,33 @@ class SelectTargetMarker:
         return target_id, target_corners
 
     @staticmethod
-    def _get_midpoint(corners: List[tuple]) -> tuple:
+    def _get_midpoint(corners: List[ScreenPosition]) -> ScreenPosition:
         # corners = [p1,p2,p3,p4] with pi = (xi, yi)
         xc = yc = 0
         n = len(corners)
         for x, y in corners:
             xc += x
             yc += y
-        xc = int(xc/n)
-        yc = int(yc/n)
+        xc = int(xc / n)
+        yc = int(yc / n)
         midpoint = (xc, yc)
-        return midpoint
+        return ScreenPosition(midpoint)
 
     @staticmethod
-    def _angle_between(p1: tuple, p2: tuple, vertical: bool = False) -> float:
-        dx = p1[0]-p2[0]
-        dy = p1[1]-p2[1]
-        if not vertical:    # Angle between horizontal axis and segment (p1,p2)
-            alpha = numpy.arctan(-dy/(dx+0.000001))
-            return alpha
-        else:               # Angle between vertical axis and segment (p1,p2)
-            beta = numpy.arctan(-dx/(dy+0.000001))
-            return beta
+    def _angle_between(p1: ScreenPosition, p2: ScreenPosition, vertical: bool = False) -> Angle:
+        dx = p1[0] - p2[0]
+        dy = p1[1] - p2[1]
+        if not vertical:  # Angle between horizontal axis and segment (p1,p2)
+            alpha = numpy.arctan(-dy / (dx + 0.000001))
+            return Angle(alpha)
+        else:  # Angle between vertical axis and segment (p1,p2)
+            beta = numpy.arctan(-dx / (dy + 0.000001))
+            return Angle(beta)
 
     @staticmethod
-    def _length_segment(p1: tuple, p2: tuple) -> int:
-        length = numpy.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
-        return int(length)
+    def _length_segment(p1: ScreenPosition, p2: ScreenPosition) -> Distance:
+        length = numpy.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+        return Distance(length)
 
     @classmethod
     def draw(cls, frame: numpy.ndarray):

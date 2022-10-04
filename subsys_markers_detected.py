@@ -1,5 +1,6 @@
 import cv2
 import numpy
+from parameters import ScreenPosition
 from typing import List
 
 
@@ -7,8 +8,8 @@ class DetectedMarkersStatus:
     """
     Contains data to describe a list of several markers
     """
-    corners = []
-    ids = []
+    corners: List[ScreenPosition] = []
+    ids: List[int] = []
 
 
 class MarkersDetector:
@@ -29,7 +30,7 @@ class MarkersDetector:
         return cp_frame
 
     @classmethod
-    def __find_markers(cls, frame: numpy.ndarray) -> (List[tuple], List[int]):
+    def __find_markers(cls, frame: numpy.ndarray) -> (List[ScreenPosition], List[int]):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_100)
         parameters = cv2.aruco.DetectorParameters_create()
@@ -37,5 +38,5 @@ class MarkersDetector:
         return corners, ids
 
     @classmethod
-    def __draw_markers(cls, frame: numpy.ndarray, corners: List[tuple], ids: List[int]):
+    def __draw_markers(cls, frame: numpy.ndarray, corners: List[ScreenPosition], ids: List[int]):
         cv2.aruco.drawDetectedMarkers(frame, corners, ids, borderColor=(100, 0, 240))
