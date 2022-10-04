@@ -9,7 +9,7 @@ class DetectedMarkersStatus:
     Contains data to describe a list of several markers
     """
     corners: List[ScreenPosition] = []
-    ids: List[int] = []
+    ids: List = []
 
 
 class MarkersDetector:
