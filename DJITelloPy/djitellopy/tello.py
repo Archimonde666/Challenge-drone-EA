@@ -12,6 +12,7 @@ from .enforce_types import enforce_types
 
 import av
 import numpy as np
+import asyncio
 
 
 threads_initialized = False
@@ -421,6 +422,41 @@ class Tello:
             self.background_frame_read.start()
         return self.background_frame_read
 
+    async def send_command_with_return_async(self, command: str, timeout: int = RESPONSE_TIMEOUT) -> str:
+        diff = time.time() - self.last_received_command_timestamp
+        if diff < self.TIME_BTW_COMMANDS:
+            self.LOGGER.debug(
+                'Waiting {} seconds to execute command: {}...'.format(diff, command))
+            time.sleep(diff)
+
+        self.LOGGER.info("Send command: '{}'".format(command))
+        timestamp = time.time()
+
+        client_socket.sendto(command.encode('utf-8'), self.address)
+
+        responses = self.get_own_udp_object()['responses']
+
+        while not responses:
+            if time.time() - timestamp > timeout:
+                message = "Aborting command '{}'. Did not receive a response after {} seconds".format(
+                    command, timeout)
+                self.LOGGER.warning(message)
+                return message
+            await asyncio.sleep(0.1)  # Sleep during send command
+
+        self.last_received_command_timestamp = time.time()
+
+        first_response = responses.pop(0)  # first datum from socket
+        try:
+            response = first_response.decode("utf-8")
+        except UnicodeDecodeError as e:
+            self.LOGGER.error(e)
+            return "response decode error"
+        response = response.rstrip("\r\n")
+
+        self.LOGGER.info("Response {}: '{}'".format(command, response))
+        return response
+
     def send_command_with_return(self, command: str, timeout: int = RESPONSE_TIMEOUT) -> str:
         """Send command to Tello and wait for its response.
         Internal method, you normally wouldn't call this yourself.
@@ -472,7 +508,21 @@ class Tello:
         self.LOGGER.info(
             "Send command (no response expected): '{}'".format(command))
         client_socket.sendto(command.encode('utf-8'), self.address)
+        
+    async def send_control_command_async(self, command: str, timeout: int = RESPONSE_TIMEOUT) -> bool:
+        response = "max retries exceeded"
+        for i in range(0, self.retry_count):
+            response = await self.send_command_with_return(command, timeout=timeout)
 
+            if 'ok' in response.lower():
+                return True
+
+            self.LOGGER.debug(
+                "Command attempt #{} failed for command: '{}'".format(i, command))
+
+        self.raise_result_error(command, response)
+        return False  # never reached
+    
     def send_control_command(self, command: str, timeout: int = RESPONSE_TIMEOUT) -> bool:
         """Send control command to Tello and wait for its response.
         Internal method, you normally wouldn't call this yourself.
@@ -579,7 +629,11 @@ class Tello:
         # So we better wait. Otherwise, it would give us an error on the following calls.
         self.send_control_command("takeoff", timeout=Tello.TAKEOFF_TIMEOUT)
         self.is_flying = True
-
+        
+    async def takeoff_async(self)
+        await self.send_control_command_async("takeoff", timeout=Tello.TAKEOFF_TIMEOUT)
+        self.is_flying = True
+    
     def land(self):
         """Automatic landing.
         """
