@@ -1,8 +1,9 @@
 import cv2
 import numpy
 
-from parameters import RED, BLUE, RAD2DEG, DRONE_POS, Distance, Angle, ScreenPosition
+from parameters import RED, BLUE, GREEN, RAD2DEG, DRONE_POS, Distance, Angle, ScreenPosition
 from subsys_markers_detected import DetectedMarkersStatus
+from subsys_tello_sensors import TelloSensors
 from typing import List
 
 
@@ -15,7 +16,7 @@ class MarkersMemory:
                                             marker n°1 reliability: float}
                                     :
     """
-    current_target_marker_id: int = 0
+    current_target_marker_id: int = 1
     markers_screen_pos: dict = {}
     highest_marker_id: int = 10
 
@@ -108,6 +109,7 @@ class SelectTargetMarker:
     """
     marker_pos: ScreenPosition = (0.0, 0.0)
     offset: tuple = (0, 0)
+    target_point: ScreenPosition = ScreenPosition((0, 0))
 
     @classmethod
     def setup(cls):
@@ -143,11 +145,11 @@ class SelectTargetMarker:
         height = cls._length_segment(bottom_pt, top_pt)
         width = cls._length_segment(left_pt, right_pt)
 
-        if height > 50 or width > 50:
-            if target_marker_id < MarkersMemory.highest_marker_id:
-                MarkersMemory.current_target_marker_id = target_marker_id + 1
-            else:
-                MarkersMemory.current_target_marker_id = 0
+        # if height > 50 or width > 50:
+        #     if target_marker_id < MarkersMemory.highest_marker_id:
+        #         MarkersMemory.current_target_marker_id = target_marker_id + 1
+        #     else:
+        #         MarkersMemory.current_target_marker_id = 0
 
         cls.offset = ScreenPosition((int(offset[0] * width),
                                      int(offset[1] * height)))
@@ -211,12 +213,6 @@ class SelectTargetMarker:
         dy = p1[1] - p2[1]
         alpha = numpy.arctan2(dy, dx)
         return alpha
-        # if not vertical:  # Angle between horizontal axis and segment (p1,p2)
-        #     alpha = numpy.arctan(-dy / (dx + 0.000001))
-        #     return Angle(alpha)
-        # else:  # Angle between vertical axis and segment (p1,p2)
-        #     beta = numpy.arctan(-dx / (dy + 0.000001))
-        #     return Angle(beta)
 
     @staticmethod
     def _length_segment(p1: ScreenPosition, p2: ScreenPosition) -> Distance:
@@ -255,7 +251,11 @@ class SelectTargetMarker:
                  RED, 2)
 
         if DRONE_POS[0] != 0:
+            cls.target_point = ScreenPosition((DRONE_POS[0] + TelloSensors.target_point_offset[0],
+                                               DRONE_POS[1] + TelloSensors.target_point_offset[1]))
+            cv2.drawMarker(frame, cls.target_point, color=GREEN, markerType=cv2.MARKER_CROSS, thickness=2)
+            cv2.drawMarker(frame, DRONE_POS, color=RED, markerType=cv2.MARKER_CROSS, thickness=2)
             cv2.line(frame,
-                     DRONE_POS,
+                     cls.target_point,
                      cls.marker_pos,
                      BLUE, 2)

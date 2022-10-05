@@ -6,6 +6,7 @@ Angle = NewType('Radians', float)
 ScreenPosition = NewType('tuple(Pixels, Pixels)', tuple[int, int])
 
 RED: tuple = (255, 0, 0)
+GREEN: tuple = (0, 255, 0)
 BLUE: tuple = (0, 0, 255)
 
 DEG2RAD: float = math.pi / 180
@@ -14,17 +15,20 @@ RAD2DEG: float = 180 / math.pi
 FPS: int = 120
 # Simulator frame dimensions : (480, 640, 3)
 # Real Tello frame dimensions : (720, 960, 3)
-# IMG_SIZE: tuple = (640, 480)
 IMG_SIZE: tuple[int, int] = (640, 480)
 SCREEN_SIZE: tuple[int, int] = (800, 480)
 DRONE_POS: ScreenPosition = ScreenPosition((IMG_SIZE[0] // 2, IMG_SIZE[1] // 2))
+
 highest_marker_index = 10
+
+SIGHT_V_ANGLE: Angle = Angle(42 * DEG2RAD)
+SIGHT_H_ANGLE: Angle = Angle(53.6 * RAD2DEG)
 
 
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
-    status: int = SIMULATION
+    status: int = REAL  # SIMULATION
 
 
 class RUN:

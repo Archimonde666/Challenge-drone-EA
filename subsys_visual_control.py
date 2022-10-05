@@ -1,6 +1,6 @@
 from parameters import RAD2DEG, FPS
 from subsys_read_user_input import RCStatus
-from subsys_select_target_marker import MarkerStatus
+from subsys_select_target_marker import MarkerStatus, SelectTargetMarker
 
 
 class VisualControl:
@@ -31,6 +31,7 @@ class VisualControl:
 
         # Left/Right velocity control
         # dx = target_marker.m_distance * numpy.sin(target_marker.m_angle)
+        tp = SelectTargetMarker.target_point
         dx = target_marker.dx
         RCStatus.a = int(cls.KP_LR_CTRL * dx)
 
@@ -39,6 +40,7 @@ class VisualControl:
         RCStatus.b = rb_threshold - int(rb_threshold * abs(target_marker.m_angle)/70)
 
         # Up/Down velocity control
+
         dy = target_marker.dy
         i_dy = cls.previous_i_dy + dy * 1 / FPS
         cls.previous_i_dy = i_dy
