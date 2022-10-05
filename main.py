@@ -4,13 +4,14 @@ from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
 from subsys_display_view import Display
 from subsys_read_user_input import ReadUserInput, ModeStatus, RCStatus
 from subsys_markers_detected import MarkersDetector, DetectedMarkersStatus
-from subsys_select_target_marker import SelectTargetMarker
+from subsys_select_target_marker import SelectTargetMarker, MarkersMemory
 from subsys_tello_sensors import TelloSensors
 from subsys_tello_actuators import TelloActuators
 from subsys_visual_control import VisualControl
 
 
 def setup():
+    MarkersMemory.setup(parameters.highest_marker_index)
     Display.setup()
     ReadUserInput.setup()
     SelectTargetMarker.setup()
@@ -46,6 +47,7 @@ def image_processing():
     if setup_finished:
         # Retrieve UAV front camera frame and internal variables
         TelloSensors.run()
+
         # Search for all ARUCO markers in the frame
         frame = MarkersDetector.run(TelloSensors.frame)
         # Select the ARUCO marker to reach first
@@ -61,7 +63,8 @@ def image_processing():
         variables_to_print = parameters.merge_dicts([TelloSensors.__get_dict__(),
                                                      ModeStatus.__get_dict__(),
                                                      RCStatus.__get_dict__(),
-                                                     marker_status.__get_dict__()])
+                                                     marker_status.__get_dict__(),
+                                                     MarkersMemory.__get_dict__()])
         Display.run(frame, variables_to_print)
     else:
         print('Frame received before the end of setup, unable to process it yet -> Frame dismissed')
