@@ -1,7 +1,7 @@
 import cv2
 import numpy
 
-from parameters import RED, BLUE, GREEN, RAD2DEG, DRONE_POS, Distance, Angle, ScreenPosition
+from parameters import RED, BLUE, GREEN, RAD2DEG, DRONE_POS, Distance, Angle, ScreenPosition, FPS, LAPS
 from subsys_markers_detected import DetectedMarkersStatus
 from subsys_tello_sensors import TelloSensors
 from typing import List
@@ -17,6 +17,8 @@ class MarkersMemory:
                                     :
     """
     current_target_marker_id: int = 0
+    passing_gate: bool = False
+    cmp: int = 0
     markers_screen_pos: dict = {}
     highest_marker_id: int = 10
 
@@ -34,6 +36,17 @@ class MarkersMemory:
                 if marker_id <= cls.highest_marker_id:
                     cls.markers_screen_pos[str(marker_id)] = dict(corners=markers.corners[i][0],
                                                                   reliability=1)
+        if cls.passing_gate:
+            if cls.cmp > 0.1 * FPS and cls.current_target_marker_id != -1:
+                cls.cmp = 0
+                cls.passing_gate = False
+                print('Gate passed, looking for gate n°', cls.current_target_marker_id)
+            elif cls.cmp > 0.5 * FPS and cls.current_target_marker_id == -1:
+                cls.cmp = 0
+                cls.passing_gate = False
+                print('Last gate passed')
+            else:
+                cls.cmp += 1
 
     @classmethod
     def __get_dict__(cls):
@@ -121,7 +134,12 @@ class SelectTargetMarker:
 
         MarkersMemory.update(markers)
         target_marker_id, corners = cls._get_target_marker(markers)
-        if target_marker_id == -1:
+        if MarkersMemory.current_target_marker_id == -1:
+            MarkerStatus.reset()
+            return MarkerStatus
+        elif target_marker_id == -1:
+            # If no markers are found on the current frame, the short-term memory provides
+            # data on the last screen position of the targeted marker
             try:
                 target_marker_id = MarkersMemory.current_target_marker_id
                 corners = MarkersMemory.markers_screen_pos[str(target_marker_id)]['corners']
@@ -146,10 +164,13 @@ class SelectTargetMarker:
         width = cls._length_segment(left_pt, right_pt)
 
         if height > 50 or width > 50:
+            MarkersMemory.passing_gate = True
             if target_marker_id < MarkersMemory.highest_marker_id:
                 MarkersMemory.current_target_marker_id = target_marker_id + 1
-            else:
+            elif LAPS:
                 MarkersMemory.current_target_marker_id = 0
+            else:
+                MarkersMemory.current_target_marker_id = -1
 
         cls.offset = ScreenPosition((int(offset[0] * width),
                                      int(offset[1] * height)))
@@ -188,10 +209,10 @@ class SelectTargetMarker:
         if markers.ids is not None:
             for i in range(len(markers.ids)):
                 marker_id = markers.ids[i][0]
-                if marker_id == MarkersMemory.current_target_marker_id:
+                if (marker_id == MarkersMemory.current_target_marker_id
+                        and MarkersMemory.current_target_marker_id != -1):
                     target_id = marker_id
                     target_corners = markers.corners[i][0]
-
         return target_id, target_corners
 
     @staticmethod
