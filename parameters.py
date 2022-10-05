@@ -10,6 +10,8 @@ DEG2RAD: float = math.pi/180
 RAD2DEG: float = 180/math.pi
 
 FPS: int = 120
+# Real Tello frame size : (960, 720) -> needs a reshape to be correctly displayed on the pygame window
+# Simulator frame size : (640, 480)
 IMG_SIZE: tuple = (640, 480)
 DRONE_POS: tuple = (IMG_SIZE[0]//2, 480)
 SCREEN_SIZE: tuple = (800, 480)

@@ -2,7 +2,7 @@ import cv2
 import numpy
 
 from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
-from parameters import ENV, MODE, RUN
+from parameters import ENV, MODE, RUN, IMG_SIZE
 from subsys_read_user_input import ModeStatus
 from subsys_tello_actuators import TelloActuators
 from subsys_visual_control import RCStatus
@@ -79,7 +79,7 @@ class TelloSensors:
             if cls.CAP.stopped:
                 RUN.status = RUN.STOP
             else:
-                image = cls.CAP.frame
+                image = cv2.resize(cls.CAP.frame, IMG_SIZE)
 
         elif ENV.status == ENV.DEBUG:
             if cls.CAP.isOpened():
