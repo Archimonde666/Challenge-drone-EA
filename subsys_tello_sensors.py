@@ -79,7 +79,7 @@ class TelloSensors:
             if cls.CAP.stopped:
                 RUN.status = RUN.STOP
             else:
-                image = cv2.reshape(cls.CAP.frame, IMG_SIZE)
+                image = cv2.resize(cls.CAP.frame, IMG_SIZE)
 
         elif ENV.status == ENV.DEBUG:
             if cls.CAP.isOpened():
