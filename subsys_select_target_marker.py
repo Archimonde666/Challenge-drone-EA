@@ -133,7 +133,7 @@ class SelectTargetMarker:
         return target_id, target_corners
 
     @staticmethod
-    def _get_midpoint(corners: List[tuple]) -> tuple:
+    def _get_midpoint(corners: List[tuple]) -> tuple: #donne la moyenne entre deux coordonnée de pixel
         # corners = [p1,p2,p3,p4] with pi = (xi, yi)
         xc = yc = 0
         n = len(corners)
