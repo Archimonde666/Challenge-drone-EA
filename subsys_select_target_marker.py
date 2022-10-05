@@ -70,6 +70,9 @@ class MarkerStatus:
     m_angle: Angle = Angle(0)
     m_distance: Distance = Distance(0)
 
+    dx: Distance = Distance(0)
+    dy: Distance = Distance(0)
+
     height: Distance = Distance(0)
     width: Distance = Distance(0)
 
@@ -86,6 +89,8 @@ class MarkerStatus:
         cls.v_angle = Angle(0)
         cls.m_angle = Angle(0)
         cls.m_distance = Distance(0)
+        cls.dx = Distance(0)
+        cls.dy = Distance(0)
         cls.height = Distance(0)
         cls.width = Distance(0)
 
@@ -97,7 +102,9 @@ class MarkerStatus:
                     'm_angle': int(cls.m_angle * RAD2DEG),
                     'm_distance': cls.m_distance,
                     'm_height': cls.height,
-                    'm_width': cls.width}
+                    'm_width': cls.width,
+                    'dx': cls.dx,
+                    'dy': cls.dy}
         return ms
 
 
@@ -118,14 +125,24 @@ class SelectTargetMarker:
     def run(cls, frame: numpy.ndarray, markers: type(DetectedMarkersStatus),
             offset: tuple = (0, 0)) -> type(MarkerStatus):
 
-        target_marker_id, corners = cls._get_marker_with_min_id(markers)
+        MarkersMemory.update(markers)
+        target_marker_id, corners = cls._get_target_marker(markers)
         if target_marker_id == -1:
-            MarkerStatus.reset()
-            return MarkerStatus
+            try:
+                target_marker_id = MarkersMemory.current_target_marker_id
+                corners = MarkersMemory.markers_screen_pos[str(target_marker_id)]['corners']
+                reliability = MarkersMemory.markers_screen_pos[str(target_marker_id)]['reliability']
+                if reliability < 0.25:
+                    MarkerStatus.reset()
+                    return MarkerStatus
+                br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
+            except KeyError:
+                MarkerStatus.reset()
+                return MarkerStatus
+        else:
+            br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
 
-        br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
         center_pt = cls._get_midpoint([br, bl, tl, tr])
-        # get symmetry axes
         left_pt = cls._get_midpoint([bl, tl])
         right_pt = cls._get_midpoint([br, tr])
         bottom_pt = cls._get_midpoint([br, bl])
@@ -134,15 +151,25 @@ class SelectTargetMarker:
         height = cls._length_segment(bottom_pt, top_pt)
         width = cls._length_segment(left_pt, right_pt)
 
+        if height > 50 or width > 50:
+            if target_marker_id < MarkersMemory.highest_marker_id:
+                MarkersMemory.current_target_marker_id = target_marker_id + 1
+            else:
+                MarkersMemory.current_target_marker_id = 0
+
         h_angle = cls._angle_between(left_pt, right_pt)
         v_angle = cls._angle_between(top_pt, bottom_pt, vertical=True)
 
-        cls.offset = (int(offset[0] * width), int(offset[1] * height))
+        cls.offset = ScreenPosition((int(offset[0] * width),
+                                     int(offset[1] * height)))
         cls.marker_pos = ScreenPosition((center_pt[0] + cls.offset[0],
                                          center_pt[1] + cls.offset[1]))
         # DRONE_POS is a tuple (x, y) that represents the position of the UAV on the pygame display
-        m_angle = cls._angle_between(DRONE_POS, cls.marker_pos, vertical=True)
+        m_angle = numpy.pi + cls._angle_between(DRONE_POS, cls.marker_pos, vertical=True)
         m_distance = cls._length_segment(DRONE_POS, cls.marker_pos)
+
+        dx = center_pt[0] + cls.offset[0] - DRONE_POS[0]
+        dy = center_pt[1] + cls.offset[1] - DRONE_POS[1]
 
         cls.draw(frame)
 
@@ -158,23 +185,23 @@ class SelectTargetMarker:
         MarkerStatus.v_angle = v_angle
         MarkerStatus.m_angle = m_angle
         MarkerStatus.m_distance = m_distance
+        MarkerStatus.dx = dx
+        MarkerStatus.dy = dy
         MarkerStatus.height = height
         MarkerStatus.width = width
         return MarkerStatus
 
     @staticmethod
-    def _get_marker_with_min_id(markers: DetectedMarkersStatus) -> (int, List[ScreenPosition]):
+    def _get_target_marker(markers: DetectedMarkersStatus) -> (int, List[ScreenPosition]):
         target_id = -1
         target_corners = []
 
-        if markers.ids is None:
-            return target_id, target_corners
-
-        for i in range(len(markers.ids)):
-            marker_id = markers.ids[i][0]
-            if marker_id < target_id or target_id == -1:
-                target_id = marker_id
-                target_corners = markers.corners[i][0]
+        if markers.ids is not None:
+            for i in range(len(markers.ids)):
+                marker_id = markers.ids[i][0]
+                if marker_id == MarkersMemory.current_target_marker_id:
+                    target_id = marker_id
+                    target_corners = markers.corners[i][0]
 
         return target_id, target_corners
 
@@ -195,12 +222,14 @@ class SelectTargetMarker:
     def _angle_between(p1: ScreenPosition, p2: ScreenPosition, vertical: bool = False) -> Angle:
         dx = p1[0] - p2[0]
         dy = p1[1] - p2[1]
-        if not vertical:  # Angle between horizontal axis and segment (p1,p2)
-            alpha = numpy.arctan(-dy / (dx + 0.000001))
-            return Angle(alpha)
-        else:  # Angle between vertical axis and segment (p1,p2)
-            beta = numpy.arctan(-dx / (dy + 0.000001))
-            return Angle(beta)
+        alpha = numpy.arctan2(dy, dx)
+        return alpha
+        # if not vertical:  # Angle between horizontal axis and segment (p1,p2)
+        #     alpha = numpy.arctan(-dy / (dx + 0.000001))
+        #     return Angle(alpha)
+        # else:  # Angle between vertical axis and segment (p1,p2)
+        #     beta = numpy.arctan(-dx / (dy + 0.000001))
+        #     return Angle(beta)
 
     @staticmethod
     def _length_segment(p1: ScreenPosition, p2: ScreenPosition) -> Distance:
