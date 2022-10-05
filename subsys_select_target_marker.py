@@ -62,10 +62,6 @@ class MarkerStatus:
     left_pt: ScreenPosition = ScreenPosition((0, 0))
     right_pt: ScreenPosition = ScreenPosition((0, 0))
 
-    # Horizontal angle
-    h_angle: Angle = Angle(0)
-    # Vertical angle
-    v_angle: Angle = Angle(0)
     # angle and distance between marker and drone
     m_angle: Angle = Angle(0)
     m_distance: Distance = Distance(0)
@@ -85,8 +81,6 @@ class MarkerStatus:
         cls.bottom_pt = ScreenPosition((0, 0))
         cls.left_pt = ScreenPosition((0, 0))
         cls.right_pt = ScreenPosition((0, 0))
-        cls.h_angle = Angle(0)
-        cls.v_angle = Angle(0)
         cls.m_angle = Angle(0)
         cls.m_distance = Distance(0)
         cls.dx = Distance(0)
@@ -97,8 +91,6 @@ class MarkerStatus:
     @classmethod
     def __get_dict__(cls) -> dict:
         ms: dict = {'id': cls.id,
-                    'H_angle': int(cls.h_angle * RAD2DEG),
-                    'v_angle': int(cls.v_angle * RAD2DEG),
                     'm_angle': int(cls.m_angle * RAD2DEG),
                     'm_distance': cls.m_distance,
                     'm_height': cls.height,
@@ -157,15 +149,12 @@ class SelectTargetMarker:
             else:
                 MarkersMemory.current_target_marker_id = 0
 
-        h_angle = cls._angle_between(left_pt, right_pt)
-        v_angle = cls._angle_between(top_pt, bottom_pt, vertical=True)
-
         cls.offset = ScreenPosition((int(offset[0] * width),
                                      int(offset[1] * height)))
         cls.marker_pos = ScreenPosition((center_pt[0] + cls.offset[0],
                                          center_pt[1] + cls.offset[1]))
         # DRONE_POS is a tuple (x, y) that represents the position of the UAV on the pygame display
-        m_angle = numpy.pi + cls._angle_between(DRONE_POS, cls.marker_pos, vertical=True)
+        m_angle = numpy.pi + cls._angle_between(DRONE_POS, cls.marker_pos)
         m_distance = cls._length_segment(DRONE_POS, cls.marker_pos)
 
         dx = center_pt[0] + cls.offset[0] - DRONE_POS[0]
@@ -181,8 +170,6 @@ class SelectTargetMarker:
         MarkerStatus.right_pt = right_pt
         MarkerStatus.bottom_pt = bottom_pt
         MarkerStatus.top_pt = top_pt
-        MarkerStatus.h_angle = h_angle
-        MarkerStatus.v_angle = v_angle
         MarkerStatus.m_angle = m_angle
         MarkerStatus.m_distance = m_distance
         MarkerStatus.dx = dx
@@ -219,7 +206,7 @@ class SelectTargetMarker:
         return ScreenPosition(midpoint)
 
     @staticmethod
-    def _angle_between(p1: ScreenPosition, p2: ScreenPosition, vertical: bool = False) -> Angle:
+    def _angle_between(p1: ScreenPosition, p2: ScreenPosition) -> Angle:
         dx = p1[0] - p2[0]
         dy = p1[1] - p2[1]
         alpha = numpy.arctan2(dy, dx)
