@@ -24,6 +24,29 @@ class Display:
     log_dict: dict = {}
 
     @classmethod
+    def setup(cls):
+        # Init pygame
+        pygame.init()
+        pygame.font.init()
+        cls.FONT_PANEL_INFO = pygame.font.Font('freesansbold.ttf', 18)
+
+        # create pygame screen
+        shift_left = SCREEN_SIZE[0] - IMG_SIZE[0]
+        cls.pos_img_in_screen = (shift_left, 0)
+        cls.SCREEN = pygame.display.set_mode(SCREEN_SIZE)
+
+    @classmethod
+    def run(cls, frame: numpy.ndarray, variables_dict: dict):
+        cls.SCREEN.fill([0, 0, 0])
+        for key in variables_dict:
+            cls._log(f"{key}: ", f"{variables_dict[key]}")
+        frame = numpy.rot90(frame)
+        frame = numpy.flipud(frame)
+        frame = pygame.surfarray.make_surface(frame)
+        cls._update_log()
+        cls.SCREEN.blit(frame, cls.pos_img_in_screen)
+
+    @classmethod
     def _log(cls, title: str, value: Any):
         """ We use the title argument as key in dictionary to save the position of the log in screen"""
         if title in cls.log_dict:
@@ -40,37 +63,3 @@ class Display:
             text = f"{title} {item['value']}"
             panel_info = cls.FONT_PANEL_INFO.render(text, True, RED)
             cls.SCREEN.blit(panel_info, item['pos'])
-
-    @classmethod
-    def setup(cls):
-        # Init pygame
-        pygame.init()
-        pygame.font.init()  # The font
-        cls.FONT_PANEL_INFO = pygame.font.Font('freesansbold.ttf', 18)
-
-        # create pygame screen
-        shift_left = SCREEN_SIZE[0] - IMG_SIZE[0]
-        cls.pos_img_in_screen = (shift_left, 0)
-        cls.SCREEN = pygame.display.set_mode(SCREEN_SIZE)
-
-    @classmethod
-    def stop(cls):
-        pass
-
-    @classmethod
-    def run(cls, frame: numpy.ndarray, variables_dict: dict):
-
-        cls.SCREEN.fill([0, 0, 0])
-
-        # cls._log("Battery:", f"{DRONE_STATUS.battery}%")
-        for key in variables_dict:
-            cls._log(f"{key}: ", f"{variables_dict[key]}")
-
-        frame = numpy.rot90(frame)
-        frame = numpy.flipud(frame)
-        frame = pygame.surfarray.make_surface(frame)
-
-        cls._update_log()
-        cls.SCREEN.blit(frame, cls.pos_img_in_screen)
-
-        pygame.display.update()

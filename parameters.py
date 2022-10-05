@@ -1,8 +1,11 @@
 import math
-from typing import List
+from typing import List, NewType
 
 
-# color parameters
+Distance = NewType('Pixels', float)
+Angle = NewType('Radians', float)
+ScreenPosition = NewType('tuple(Pixels, Pixels)', tuple[int, int])
+
 RED: tuple = (255, 0, 0)
 BLUE: tuple = (0, 0, 255)
 
@@ -13,14 +16,13 @@ FPS: int = 120
 # Real Tello frame size : (960, 720) -> needs a reshape to be correctly displayed on the pygame window
 # Simulator frame size : (640, 480)
 IMG_SIZE: tuple = (640, 480)
-DRONE_POS: tuple = (IMG_SIZE[0]//2, 480)
+DRONE_POS: ScreenPosition = ScreenPosition((IMG_SIZE[0]//2, 480))
 SCREEN_SIZE: tuple = (800, 480)
 
 
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
-    DEBUG: int = 2
     status: int = SIMULATION
 
 

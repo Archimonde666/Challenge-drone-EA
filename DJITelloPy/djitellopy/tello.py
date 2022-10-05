@@ -99,7 +99,8 @@ class Tello:
 
     def __init__(self,
                  host=TELLO_IP,
-                 retry_count=RETRY_COUNT):
+                 retry_count=RETRY_COUNT,
+                 image_received_method=None):
 
         global threads_initialized, client_socket, drones
 
@@ -108,6 +109,7 @@ class Tello:
         self.retry_count = retry_count
         self.last_received_command_timestamp = time.time()
         self.last_rc_control_timestamp = time.time()
+        self.update_frame_method = image_received_method
 
         if not threads_initialized:
             # Run Tello command responses UDP receiver on background
@@ -415,7 +417,7 @@ class Tello:
         """
         if self.background_frame_read is None:
             address = self.get_udp_video_address()
-            self.background_frame_read = BackgroundFrameRead(self, address)
+            self.background_frame_read = BackgroundFrameRead(address, self.update_frame_method)
             self.background_frame_read.start()
         return self.background_frame_read
 
@@ -522,7 +524,7 @@ class Tello:
         response = self.send_read_command(command)
         return float(response)
 
-    def raise_result_error(self, command: str, response: str) -> bool:
+    def raise_result_error(self, command: str, response: str):
         """Used to reaise an error after an unsuccessful command
         Internal method, you normally wouldn't call this yourself.
         """
@@ -536,14 +538,14 @@ class Tello:
         self.send_control_command("command")
 
         if wait_for_state:
-            REPS = 20
-            for i in range(REPS):
+            reps = 20
+            for i in range(reps):
                 if self.get_current_state():
-                    t = i / REPS  # in seconds
+                    t = i / reps  # in seconds
                     Tello.LOGGER.debug(
                         "'.connect()' received first state packet after {} seconds".format(t))
                     break
-                time.sleep(1 / REPS)
+                time.sleep(1 / reps)
 
             if not self.get_current_state():
                 raise TelloException(
@@ -1030,15 +1032,17 @@ class Tello:
         self.end()
 
 
+# noinspection PyUnresolvedReferences
 class BackgroundFrameRead:
     """
     This class read frames using PyAV in background. Use
     backgroundFrameRead.frame to get the current frame.
     """
 
-    def __init__(self, tello, address):
+    def __init__(self, address, frame_update_callback=None):
         self.address = address
         self.frame = np.zeros([300, 400, 3], dtype=np.uint8)
+        self.frame_update_callback = frame_update_callback
 
         # Try grabbing frame with PyAV
         # According to issue #90 the decoder might need some time
@@ -1064,15 +1068,18 @@ class BackgroundFrameRead:
         """Thread worker function to retrieve frames using PyAV
         Internal method, you normally wouldn't call this yourself.
         """
+
         try:
             for frame in self.container.decode(video=0):
                 self.frame = np.array(frame.to_image())
                 if self.stopped:
                     self.container.close()
                     break
+                if self.frame_update_callback is not None:
+                    self.frame_update_callback()
         except av.error.ExitError:
-            raise TelloException(
-                'Do not have enough frames for decoding, please try again or increase video fps before get_frame_read()')
+            raise TelloException('Do not have enough frames for decoding, please try again or increase video'
+                                 ' fps before get_frame_read()')
 
     def stop(self):
         """Stop the frame update worker
