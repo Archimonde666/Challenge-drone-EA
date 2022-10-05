@@ -36,7 +36,7 @@ class TelloSensors:
         if cls.frame_reader.stopped:
             RunStatus.value = RUN.STOP
         else:
-            cls.frame = cls.frame_reader.frame
+            cls.frame = cv2.reshape(cls.frame_reader.frame, IMG_SIZE)
 
         if ModeStatus.value == MODE.TAKEOFF:
             ModeStatus.value = MODE.MANUAL_FLIGHT
