@@ -16,7 +16,7 @@ class MarkersMemory:
                                             marker n°1 reliability: float}
                                     :
     """
-    current_target_marker_id: int = 1
+    current_target_marker_id: int = 0
     markers_screen_pos: dict = {}
     highest_marker_id: int = 10
 
@@ -145,11 +145,11 @@ class SelectTargetMarker:
         height = cls._length_segment(bottom_pt, top_pt)
         width = cls._length_segment(left_pt, right_pt)
 
-        # if height > 50 or width > 50:
-        #     if target_marker_id < MarkersMemory.highest_marker_id:
-        #         MarkersMemory.current_target_marker_id = target_marker_id + 1
-        #     else:
-        #         MarkersMemory.current_target_marker_id = 0
+        if height > 50 or width > 50:
+            if target_marker_id < MarkersMemory.highest_marker_id:
+                MarkersMemory.current_target_marker_id = target_marker_id + 1
+            else:
+                MarkersMemory.current_target_marker_id = 0
 
         cls.offset = ScreenPosition((int(offset[0] * width),
                                      int(offset[1] * height)))

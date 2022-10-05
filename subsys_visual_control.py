@@ -11,8 +11,8 @@ class VisualControl:
     Output: RCStatus class containing velocity commands that will be forwarded to the UAV
     """
     KP_LR_CTRL = 0.1
-    KP_UD_CTRL = 0.3
-    KI_UD_CTRL = 0.4
+    KP_UD_CTRL = 0.1
+    KI_UD_CTRL = 0.05
     KP_YAW_CTRL = 2 * 10**-3
     previous_i_dy = 0
     cmp: int = 0  # Counts the successive frames without any detected marker
@@ -31,8 +31,8 @@ class VisualControl:
 
         # Left/Right velocity control
         # dx = target_marker.m_distance * numpy.sin(target_marker.m_angle)
-        tp = SelectTargetMarker.target_point
-        dx = target_marker.dx
+        dx = target_marker.center_pt[0] + SelectTargetMarker.offset[0] - SelectTargetMarker.target_point[0]
+        dy = target_marker.center_pt[1] + SelectTargetMarker.offset[1] - SelectTargetMarker.target_point[1]
         RCStatus.a = int(cls.KP_LR_CTRL * dx)
 
         # Forward/Backward velocity control
@@ -40,8 +40,6 @@ class VisualControl:
         RCStatus.b = rb_threshold - int(rb_threshold * abs(target_marker.m_angle)/70)
 
         # Up/Down velocity control
-
-        dy = target_marker.dy
         i_dy = cls.previous_i_dy + dy * 1 / FPS
         cls.previous_i_dy = i_dy
         RCStatus.c = - int(cls.KP_UD_CTRL * dy + cls.KI_UD_CTRL * i_dy)
