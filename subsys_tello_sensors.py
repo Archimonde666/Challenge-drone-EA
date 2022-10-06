@@ -66,12 +66,13 @@ class FrameReader:
     # (This step is mandatory as the frames are passed from one thread to another)
     # Since only the last received frame is important to control the UAV, we can dismiss the older ones that
     # have not been processed in time.
-    frames_queue: LifoQueue = LifoQueue()
+    frames_queue: LifoQueue = None
     frame_reader: BackgroundFrameRead = None
 
     @classmethod
     def setup(cls, frame_reader: BackgroundFrameRead):
         cls.frame_reader = frame_reader
+        cls.frames_queue = LifoQueue()
 
     @classmethod
     def update_frame(cls):
@@ -90,4 +91,3 @@ class FrameReader:
         frame = cv2.resize(raw_frame, IMG_SIZE)
         cls.flush_old_frames()
         return frame
-

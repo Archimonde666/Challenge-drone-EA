@@ -1,6 +1,5 @@
 import logging
 import time
-from queue import LifoQueue
 
 import parameters
 from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
@@ -53,7 +52,6 @@ class ImageProcess:
     # and the Tello frames reception at a high rate, even during time-expensive image processing computations.
     # Then, the processed frame is always the most recent one, and the not-processed outdated frames are dismissed.
     stop_request = False
-    frames_queue: LifoQueue = None
     image_processing_thread: Thread = None
 
     @classmethod
