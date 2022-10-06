@@ -49,21 +49,27 @@ def init_env() -> (Tello, BackgroundFrameRead):
 
 
 class ImageProcess:
+    # The image processing features are run in a separate thread in order to allow the pygame window update
+    # and the Tello frames reception at a high rate, even during time-expensive image processing computations.
+    # Then, the processed frame is always the most recent one, and the not-processed outdated frames are dismissed.
     stop_request = False
     frames_queue: LifoQueue = None
     image_processing_thread: Thread = None
 
     @classmethod
     def setup(cls, timeout: int = 2):
+        # Warning : Blocking code in the main thread !!!
+        # Since the program cannot perform any image process before having received a frame from the Tello,
+        # this part of the program waits for the first frame to be available before finishing the setup.
         start_time = time.time()
-        print('Attempting to get frame...')
+        print('ImageProcess | Attempting to get frame...')
         while True:
             if not FrameReader.frames_queue.empty():
                 frame_received = True
-                print('Frame received')
+                print('ImageProcess | Frame received')
                 break
             if time.time() - start_time > timeout:
-                print('Timeout reached, no frame received')
+                print('ImageProcess | Timeout reached, no frame received')
                 frame_received = False
                 stop()
                 break
@@ -78,15 +84,14 @@ class ImageProcess:
         while True:
             if cls.stop_request:
                 break
-
             # Retrieve UAV internal variables
             TelloSensors.run()
             # Retrieve most recent frame from the Tello
             frame = FrameReader.get_most_recent_frame()
             # Search for all ARUCO markers in the frame
-            frame = MarkersDetector.run(frame)
+            frame_with_markers = MarkersDetector.run(frame)
             # Select the ARUCO marker to reach first
-            marker_status = SelectTargetMarker.run(frame,
+            marker_status = SelectTargetMarker.run(frame_with_markers,
                                                    DetectedMarkersStatus,
                                                    offset=(-4, 0))
             # Get the velocity commands from the automatic control module
@@ -99,7 +104,7 @@ class ImageProcess:
                                                          ModeStatus.__get_dict__(),
                                                          RCStatus.__get_dict__(),
                                                          marker_status.__get_dict__()])
-            Display.run(frame, variables_to_print)
+            Display.run(frame_with_markers, variables_to_print)
         print('Image processing thread stopped')
 
     @classmethod
@@ -109,12 +114,12 @@ class ImageProcess:
 
 
 def stop():
+    # Important : first stop ImageProcess, then stop TelloActuator or pygame will crash
     ImageProcess.stop()
     TelloActuators.stop()
 
 
 if __name__ == "__main__":
-    stop_image_processing_thread = False
     setup_ok = setup()
     if setup_ok:
         # The run_pygame_loop() is a while loop that breaks only when the flight is finished

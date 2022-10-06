@@ -62,6 +62,10 @@ class TelloSensors:
 
 
 class FrameReader:
+    # The purpose of this class is to put every received frame from the Tello in a queue
+    # (This step is mandatory as the frames are passed from one thread to another)
+    # Since only the last received frame is important to control the UAV, we can dismiss the older ones that
+    # have not been processed in time.
     frames_queue: LifoQueue = LifoQueue()
     frame_reader: BackgroundFrameRead = None
 
