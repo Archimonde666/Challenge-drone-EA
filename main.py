@@ -1,13 +1,17 @@
 import logging
+import time
+from queue import LifoQueue
+
 import parameters
 from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
 from subsys_display_view import Display
 from subsys_read_user_input import ReadUserInput, ModeStatus, RCStatus
 from subsys_markers_detected import MarkersDetector, DetectedMarkersStatus
 from subsys_select_target_marker import SelectTargetMarker
-from subsys_tello_sensors import TelloSensors
+from subsys_tello_sensors import TelloSensors, FrameReader
 from subsys_tello_actuators import TelloActuators
 from subsys_visual_control import VisualControl
+from threading import Thread
 
 
 def setup():
@@ -16,9 +20,11 @@ def setup():
     SelectTargetMarker.setup()
     tello, frame_reader = init_env()
     tello.LOGGER.setLevel(logging.WARN)
+    FrameReader.setup(frame_reader)
     TelloActuators.setup(tello)
-    TelloSensors.setup(tello, frame_reader)
-    return 1
+    TelloSensors.setup(tello)
+    frame_reception_check = ImageProcess.setup(timeout=2)
+    return frame_reception_check
 
 
 def init_env() -> (Tello, BackgroundFrameRead):
@@ -26,10 +32,10 @@ def init_env() -> (Tello, BackgroundFrameRead):
     tello = None
     if parameters.ENV.status == parameters.ENV.SIMULATION:
         Tello.CONTROL_UDP_PORT_CLIENT = 9000
-        tello = Tello("127.0.0.1", image_received_method=image_processing)
+        tello = Tello("127.0.0.1", image_received_method=FrameReader.update_frame)
     elif parameters.ENV.status == parameters.ENV.REAL:
         Tello.CONTROL_UDP_PORT_CLIENT = Tello.CONTROL_UDP_PORT
-        tello = Tello("192.168.10.1", image_received_method=image_processing)
+        tello = Tello("192.168.10.1", image_received_method=FrameReader.update_frame)
     tello.connect()
     tello.streamoff()
     tello.streamon()
@@ -42,39 +48,79 @@ def init_env() -> (Tello, BackgroundFrameRead):
     return tello, frame_reader
 
 
-def image_processing():
-    if setup_finished:
-        # Retrieve UAV front camera frame and internal variables
-        TelloSensors.run()
-        # Search for all ARUCO markers in the frame
-        frame = MarkersDetector.run(TelloSensors.frame)
-        # Select the ARUCO marker to reach first
-        marker_status = SelectTargetMarker.run(frame,
-                                               DetectedMarkersStatus,
-                                               offset=(-4, 0))
-        # Get the velocity commands from the automatic control module
-        if ModeStatus.value == parameters.MODE.AUTO_FLIGHT:
-            VisualControl.run(marker_status)
-        # Send the commands to the UAV
-        TelloActuators.run(RCStatus)
-        # Update pygame display window
-        variables_to_print = parameters.merge_dicts([TelloSensors.__get_dict__(),
-                                                     ModeStatus.__get_dict__(),
-                                                     RCStatus.__get_dict__(),
-                                                     marker_status.__get_dict__()])
-        Display.run(frame, variables_to_print)
-    else:
-        print('Frame received before the end of setup, unable to process it yet -> Frame dismissed')
+class ImageProcess:
+    stop_request = False
+    frames_queue: LifoQueue = None
+    image_processing_thread: Thread = None
+
+    @classmethod
+    def setup(cls, timeout: int = 2):
+        start_time = time.time()
+        print('Attempting to get frame...')
+        while True:
+            if not FrameReader.frames_queue.empty():
+                frame_received = True
+                print('Frame received')
+                break
+            if time.time() - start_time > timeout:
+                print('Timeout reached, no frame received')
+                frame_received = False
+                stop()
+                break
+        if frame_received:
+            cls.image_processing_thread = Thread(target=cls.run)
+            cls.image_processing_thread.start()
+        return frame_received
+
+    @classmethod
+    def run(cls):
+        print('Image processing thread started')
+        while True:
+            if cls.stop_request:
+                break
+
+            # Retrieve UAV internal variables
+            TelloSensors.run()
+            # Retrieve most recent frame from the Tello
+            frame = FrameReader.get_most_recent_frame()
+            # Search for all ARUCO markers in the frame
+            frame = MarkersDetector.run(frame)
+            # Select the ARUCO marker to reach first
+            marker_status = SelectTargetMarker.run(frame,
+                                                   DetectedMarkersStatus,
+                                                   offset=(-4, 0))
+            # Get the velocity commands from the automatic control module
+            if ModeStatus.value == parameters.MODE.AUTO_FLIGHT:
+                VisualControl.run(marker_status)
+            # Send the commands to the UAV
+            TelloActuators.run(RCStatus)
+            # Update pygame display window
+            variables_to_print = parameters.merge_dicts([TelloSensors.__get_dict__(),
+                                                         ModeStatus.__get_dict__(),
+                                                         RCStatus.__get_dict__(),
+                                                         marker_status.__get_dict__()])
+            Display.run(frame, variables_to_print)
+        print('Image processing thread stopped')
+
+    @classmethod
+    def stop(cls):
+        cls.stop_request = True
+        cls.image_processing_thread.join()
 
 
 def stop():
+    ImageProcess.stop()
     TelloActuators.stop()
 
 
 if __name__ == "__main__":
-    setup_finished = setup()
-    # The run_pygame_loop() is a while loop that breaks only when the flight is finished
-    # This loop constantly checks for new user inputs, and updates the
-    # pygame window with the latest available frame
-    flight_finished = ReadUserInput.run_pygame_loop()
-    stop()
+    stop_image_processing_thread = False
+    setup_ok = setup()
+    if setup_ok:
+        # The run_pygame_loop() is a while loop that breaks only when the flight is finished
+        # This loop constantly checks for new user inputs, and updates the
+        # pygame window with the latest available frame
+        flight_finished = ReadUserInput.run_pygame_loop()
+        stop()
+    else:
+        stop()
