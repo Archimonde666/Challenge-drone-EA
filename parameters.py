@@ -29,7 +29,7 @@ SIGHT_H_ANGLE: Angle = Angle(53.6 * RAD2DEG)
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
-    status: int = SIMULATION
+    status: int = REAL
 
 
 class RUN:
