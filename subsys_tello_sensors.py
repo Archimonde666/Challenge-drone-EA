@@ -5,10 +5,9 @@ import numpy
 
 from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
 from parameters import MODE, IMG_SIZE, RUN, RunStatus, SIGHT_H_ANGLE, SIGHT_V_ANGLE, DEG2RAD
-from subsys_read_user_input import ModeStatus, RCStatus
+from subsys_read_user_input import ModeStatus
 from subsys_tello_actuators import TelloActuators
 from subsys_visual_control import RCStatus
-from typing import Union
 
 
 class TelloSensors:

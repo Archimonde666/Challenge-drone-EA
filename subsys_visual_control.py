@@ -44,4 +44,3 @@ class VisualControl:
         elif not MarkersMemory.passing_gate:
             print('Sequence finished, landing')
             ModeStatus.value = MODE.LAND
-

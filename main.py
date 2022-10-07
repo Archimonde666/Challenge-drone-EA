@@ -8,7 +8,6 @@ from subsys_read_user_input import ReadUserInput, ModeStatus, RCStatus
 from subsys_markers_detected import MarkersDetector, DetectedMarkersStatus
 from subsys_tello_sensors import TelloSensors, FrameReader
 from subsys_select_target_marker import SelectTargetMarker, MarkersMemory
-from subsys_tello_sensors import TelloSensors
 from subsys_tello_actuators import TelloActuators
 from subsys_visual_control import VisualControl
 from threading import Thread
