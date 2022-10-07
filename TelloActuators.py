@@ -1,5 +1,5 @@
 from DJITelloPy.djitellopy.tello import Tello
-from subsys_read_user_input import RCStatus
+from RCStatus import RCStatus
 
 
 class TelloActuators:

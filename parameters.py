@@ -35,6 +35,7 @@ class ENV:
 class RUN:
     STOP: bool = False
     START: bool = True
+    status: bool = STOP
 
 
 class MODE:
@@ -43,10 +44,12 @@ class MODE:
     LAND: int = 2
     MANUAL_FLIGHT: int = 3
     AUTO_FLIGHT: int = 4
+    status = LAND
 
-
-class RunStatus:
-    value: bool = RUN.STOP
+    @classmethod
+    def __get_dict__(cls) -> dict:
+        ms: dict = {'Mode': cls.status}
+        return ms
 
 
 def merge_dicts(dict_list: List[dict]) -> dict:

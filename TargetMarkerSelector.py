@@ -1,113 +1,16 @@
+from parameters import ScreenPosition, DRONE_POS, RED, GREEN, BLUE, LAPS, Angle, Distance
+from MarkersDetector import MarkersDetector
+from MarkersMemory import MarkersMemory
+from MarkerStatus import MarkerStatus
+from TelloSensors import TelloSensors
+
+from typing import List
+
 import cv2
 import numpy
 
-from parameters import RED, BLUE, GREEN, RAD2DEG, DRONE_POS, Distance, Angle, ScreenPosition, FPS, LAPS
-from subsys_markers_detected import DetectedMarkersStatus
-from subsys_tello_sensors import TelloSensors
-from typing import List
 
-
-class MarkersMemory:
-    """
-    Saves the last on-screen position of every marker in a dictionary
-    markers_screen_pos_memory ->    [0] -> {marker n°0 corners positions: 4*[ScreenPosition],
-                                            marker n°0 reliability: float}
-                                    [1] -> {marker n°1 corners position: 4*[ScreenPosition],
-                                            marker n°1 reliability: float}
-                                    :
-    """
-    current_target_marker_id: int = 0
-    passing_gate: bool = False
-    cmp: int = 0
-    markers_screen_pos: dict = {}
-    highest_marker_id: int = 10
-
-    @classmethod
-    def setup(cls, highest_marker_index: int = 10):
-        cls.highest_marker_id = highest_marker_index
-
-    @classmethod
-    def update(cls, markers: DetectedMarkersStatus):
-        for key in cls.markers_screen_pos.keys():
-            cls.markers_screen_pos[key]['reliability'] = 0.98 * cls.markers_screen_pos[key]['reliability']
-        if markers.ids is not None:
-            for i in range(len(markers.ids)):
-                marker_id = markers.ids[i][0]
-                if marker_id <= cls.highest_marker_id:
-                    cls.markers_screen_pos[str(marker_id)] = dict(corners=markers.corners[i][0],
-                                                                  reliability=1)
-        if cls.passing_gate:
-            if cls.cmp > 0.1 * FPS and cls.current_target_marker_id != -1:
-                cls.cmp = 0
-                cls.passing_gate = False
-                print('Gate passed, looking for gate n°', cls.current_target_marker_id)
-            elif cls.cmp > 0.5 * FPS and cls.current_target_marker_id == -1:
-                cls.cmp = 0
-                cls.passing_gate = False
-                print('Last gate passed')
-            else:
-                cls.cmp += 1
-
-    @classmethod
-    def __get_dict__(cls):
-        try:
-            mm: dict = {'Target id': cls.current_target_marker_id,
-                        'Trust (%)': 100 * cls.markers_screen_pos[str(cls.current_target_marker_id)]['reliability']}
-        except KeyError:
-            mm: dict = {'Target id': 'N/D',
-                        'Trust (%)': 'N/D'}
-        return mm
-
-
-class MarkerStatus:
-    """
-    Contains data about the marker that is selected as the target to be reached
-    """
-
-    id: int = -1
-    corners: List[ScreenPosition] = []
-
-    # Origin axis
-    center_pt: ScreenPosition = ScreenPosition((0, 0))
-    # Horizontal axis
-    top_pt: ScreenPosition = ScreenPosition((0, 0))
-    bottom_pt: ScreenPosition = ScreenPosition((0, 0))
-    # Vertical axis
-    left_pt: ScreenPosition = ScreenPosition((0, 0))
-    right_pt: ScreenPosition = ScreenPosition((0, 0))
-
-    # angle and distance between marker and drone
-    m_angle: Angle = Angle(0)
-    m_distance: Distance = Distance(0)
-
-    height: Distance = Distance(0)
-    width: Distance = Distance(0)
-
-    @classmethod
-    def reset(cls):
-        cls.id = -1
-        cls.corners = []
-        cls.center_pt = ScreenPosition((0, 0))
-        cls.top_pt = ScreenPosition((0, 0))
-        cls.bottom_pt = ScreenPosition((0, 0))
-        cls.left_pt = ScreenPosition((0, 0))
-        cls.right_pt = ScreenPosition((0, 0))
-        cls.m_angle = Angle(0)
-        cls.m_distance = Distance(0)
-        cls.height = Distance(0)
-        cls.width = Distance(0)
-
-    @classmethod
-    def __get_dict__(cls) -> dict:
-        ms: dict = {'id': cls.id,
-                    'm_angle': int(cls.m_angle * RAD2DEG),
-                    'm_distance': cls.m_distance,
-                    'm_height': cls.height,
-                    'm_width': cls.width}
-        return ms
-
-
-class SelectTargetMarker:
+class TargetMarkerSelector:
     """
     Selects the marker to reach first from the list of markers detected by the Tello onboard camera,
     then returns the corresponding MarkerStatus class filled with the position of the Tello relatively
@@ -122,11 +25,11 @@ class SelectTargetMarker:
         MarkerStatus.reset()
 
     @classmethod
-    def run(cls, frame: numpy.ndarray, markers: type(DetectedMarkersStatus),
+    def run(cls, frame: numpy.ndarray,
             offset: tuple = (0, 0)) -> type(MarkerStatus):
 
-        MarkersMemory.update(markers)
-        target_marker_id, corners = cls._get_target_marker(markers)
+        MarkersMemory.update(MarkersDetector.ids, MarkersDetector.corners)
+        target_marker_id, corners = cls._get_target_marker(MarkersDetector.ids, MarkersDetector.corners)
         if MarkersMemory.current_target_marker_id == -1:
             MarkerStatus.reset()
             return MarkerStatus
@@ -190,17 +93,17 @@ class SelectTargetMarker:
         return MarkerStatus
 
     @staticmethod
-    def _get_target_marker(markers: DetectedMarkersStatus) -> (int, List[ScreenPosition]):
+    def _get_target_marker(ids, corners) -> (int, List[ScreenPosition]):
         target_id = -1
         target_corners = []
 
-        if markers.ids is not None:
-            for i in range(len(markers.ids)):
-                marker_id = markers.ids[i][0]
+        if ids is not None:
+            for i in range(len(ids)):
+                marker_id = ids[i][0]
                 if (marker_id == MarkersMemory.current_target_marker_id
                         and MarkersMemory.current_target_marker_id != -1):
                     target_id = marker_id
-                    target_corners = markers.corners[i][0]
+                    target_corners = corners[i][0]
         return target_id, target_corners
 
     @staticmethod

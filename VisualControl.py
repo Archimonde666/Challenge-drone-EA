@@ -1,6 +1,8 @@
 from parameters import RAD2DEG, FPS, MODE
-from subsys_read_user_input import RCStatus, ModeStatus
-from subsys_select_target_marker import MarkerStatus, SelectTargetMarker, MarkersMemory
+from RCStatus import RCStatus
+from MarkersMemory import MarkersMemory
+from TargetMarkerSelector import TargetMarkerSelector
+from MarkerStatus import MarkerStatus
 
 
 class VisualControl:
@@ -23,8 +25,8 @@ class VisualControl:
             dx = 0
             dy = 0
         else:
-            dx = target_marker.center_pt[0] + SelectTargetMarker.offset[0] - SelectTargetMarker.target_point[0]
-            dy = target_marker.center_pt[1] + SelectTargetMarker.offset[1] - SelectTargetMarker.target_point[1]
+            dx = target_marker.center_pt[0] + TargetMarkerSelector.offset[0] - TargetMarkerSelector.target_point[0]
+            dy = target_marker.center_pt[1] + TargetMarkerSelector.offset[1] - TargetMarkerSelector.target_point[1]
 
         if MarkersMemory.current_target_marker_id != -1:
             # Left/Right velocity control
@@ -43,4 +45,4 @@ class VisualControl:
             RCStatus.d = int(RAD2DEG * cls.KP_YAW_CTRL * dx)
         elif not MarkersMemory.passing_gate:
             print('Sequence finished, landing')
-            ModeStatus.value = MODE.LAND
+            MODE.status = MODE.LAND
