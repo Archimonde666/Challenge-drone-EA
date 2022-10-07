@@ -5,9 +5,8 @@ import numpy
 
 from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
 from parameters import MODE, IMG_SIZE, RUN, RunStatus, SIGHT_H_ANGLE, SIGHT_V_ANGLE, DEG2RAD
-from subsys_read_user_input import ModeStatus
+from subsys_read_user_input import ModeStatus, RCStatus
 from subsys_tello_actuators import TelloActuators
-from subsys_visual_control import RCStatus
 
 
 class TelloSensors:
@@ -23,7 +22,6 @@ class TelloSensors:
     yaw: int = 0
 
     target_point_offset: tuple[int, int] = (0, 0)
-
     frame: numpy.ndarray = numpy.ndarray(IMG_SIZE)
 
     @classmethod
@@ -59,8 +57,8 @@ class TelloSensors:
 
     @classmethod
     def update_target_point(cls):
-        dx = int((IMG_SIZE[0]/2) * (cls.roll * DEG2RAD / (SIGHT_H_ANGLE/2)))
-        dy = int((IMG_SIZE[1]/2) * (cls.pitch * DEG2RAD / (SIGHT_V_ANGLE/2)))
+        dx = int((IMG_SIZE[0]/2) * (cls.roll * DEG2RAD / SIGHT_H_ANGLE))
+        dy = int((IMG_SIZE[1]/2) * (cls.pitch * DEG2RAD / SIGHT_V_ANGLE))
         cls.target_point_offset = (dx, dy)
 
     @classmethod

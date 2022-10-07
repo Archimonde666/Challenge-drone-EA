@@ -23,13 +23,13 @@ LAPS: bool = True
 highest_marker_index: int = 10
 
 SIGHT_V_ANGLE: Angle = Angle(42 * DEG2RAD)
-SIGHT_H_ANGLE: Angle = Angle(53.6 * RAD2DEG)
+SIGHT_H_ANGLE: Angle = Angle(53.6 * DEG2RAD)
 
 
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
-    status: int = REAL
+    status: int = SIMULATION
 
 
 class RUN:

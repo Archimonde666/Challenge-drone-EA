@@ -102,7 +102,8 @@ class ImageProcess:
             variables_to_print = parameters.merge_dicts([TelloSensors.__get_dict__(),
                                                          ModeStatus.__get_dict__(),
                                                          RCStatus.__get_dict__(),
-                                                         marker_status.__get_dict__()])
+                                                         marker_status.__get_dict__(),
+                                                         MarkersMemory.__get_dict__()])
             Display.run(frame_with_markers, variables_to_print)
         print('Image processing thread stopped')
 

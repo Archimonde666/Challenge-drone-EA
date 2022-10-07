@@ -80,9 +80,6 @@ class MarkerStatus:
     m_angle: Angle = Angle(0)
     m_distance: Distance = Distance(0)
 
-    dx: Distance = Distance(0)
-    dy: Distance = Distance(0)
-
     height: Distance = Distance(0)
     width: Distance = Distance(0)
 
@@ -97,8 +94,6 @@ class MarkerStatus:
         cls.right_pt = ScreenPosition((0, 0))
         cls.m_angle = Angle(0)
         cls.m_distance = Distance(0)
-        cls.dx = Distance(0)
-        cls.dy = Distance(0)
         cls.height = Distance(0)
         cls.width = Distance(0)
 
@@ -108,9 +103,7 @@ class MarkerStatus:
                     'm_angle': int(cls.m_angle * RAD2DEG),
                     'm_distance': cls.m_distance,
                     'm_height': cls.height,
-                    'm_width': cls.width,
-                    'dx': cls.dx,
-                    'dy': cls.dy}
+                    'm_width': cls.width}
         return ms
 
 
@@ -180,9 +173,6 @@ class SelectTargetMarker:
         m_angle = numpy.pi + cls._angle_between(DRONE_POS, cls.marker_pos)
         m_distance = cls._length_segment(DRONE_POS, cls.marker_pos)
 
-        dx = center_pt[0] + cls.offset[0] - DRONE_POS[0]
-        dy = center_pt[1] + cls.offset[1] - DRONE_POS[1]
-
         cls.draw(frame)
 
         # update output
@@ -195,8 +185,6 @@ class SelectTargetMarker:
         MarkerStatus.top_pt = top_pt
         MarkerStatus.m_angle = m_angle
         MarkerStatus.m_distance = m_distance
-        MarkerStatus.dx = dx
-        MarkerStatus.dy = dy
         MarkerStatus.height = height
         MarkerStatus.width = width
         return MarkerStatus
