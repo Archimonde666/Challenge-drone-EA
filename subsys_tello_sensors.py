@@ -1,3 +1,5 @@
+from queue import LifoQueue
+
 import cv2
 import numpy
 
@@ -5,6 +7,7 @@ from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
 from parameters import MODE, IMG_SIZE, RUN, RunStatus, SIGHT_H_ANGLE, SIGHT_V_ANGLE, DEG2RAD
 from subsys_read_user_input import ModeStatus, RCStatus
 from subsys_tello_actuators import TelloActuators
+from subsys_visual_control import RCStatus
 from typing import Union
 
 
@@ -15,9 +18,6 @@ class TelloSensors:
     """
 
     tello: Tello = None
-    frame_reader = None
-    CAP: Union[cv2.VideoCapture,
-               BackgroundFrameRead] = None
     battery: int = 0
     roll: int = 0
     pitch: int = 0
@@ -28,16 +28,11 @@ class TelloSensors:
     frame: numpy.ndarray = numpy.ndarray(IMG_SIZE)
 
     @classmethod
-    def setup(cls, tello: Tello, frame_reader: BackgroundFrameRead):
+    def setup(cls, tello: Tello):
         cls.tello = tello
-        cls.frame_reader = frame_reader
 
     @classmethod
     def run(cls):
-        if cls.frame_reader.stopped:
-            RunStatus.value = RUN.STOP
-        else:
-            cls.frame = cv2.resize(cls.frame_reader.frame, IMG_SIZE)
         cls.update_target_point()
         if ModeStatus.value == MODE.TAKEOFF:
             ModeStatus.value = MODE.MANUAL_FLIGHT
@@ -76,3 +71,35 @@ class TelloSensors:
                          'Pitch': cls.pitch,
                          'Yaw': cls.yaw}
         return sensors
+
+
+class FrameReader:
+    # The purpose of this class is to put every received frame from the Tello in a queue
+    # (This step is mandatory as the frames are passed from one thread to another)
+    # Since only the last received frame is important to control the UAV, we can dismiss the older ones that
+    # have not been processed in time.
+    frames_queue: LifoQueue = None
+    frame_reader: BackgroundFrameRead = None
+
+    @classmethod
+    def setup(cls, frame_reader: BackgroundFrameRead):
+        cls.frame_reader = frame_reader
+        cls.frames_queue = LifoQueue()
+
+    @classmethod
+    def update_frame(cls):
+        if cls.frame_reader.stopped:
+            RunStatus.value = RUN.STOP
+        else:
+            cls.frames_queue.put_nowait(cls.frame_reader.frame)
+
+    @classmethod
+    def flush_old_frames(cls):
+        cls.frames_queue = LifoQueue()
+
+    @classmethod
+    def get_most_recent_frame(cls) -> numpy.ndarray:
+        raw_frame = cls.frames_queue.get()
+        frame = cv2.resize(raw_frame, IMG_SIZE)
+        cls.flush_old_frames()
+        return frame
