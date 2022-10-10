@@ -9,6 +9,7 @@ from RCStatus import RCStatus
 from MarkersDetector import MarkersDetector
 from TelloSensors import TelloSensors
 from MarkersMemory import MarkersMemory
+from MarkerStatus import MarkerStatus
 from parameters import MODE, RUN, ENV, highest_marker_index, merge_dicts
 from TargetMarkerSelector import TargetMarkerSelector
 from TelloActuators import TelloActuators
@@ -93,18 +94,17 @@ class ImageProcess:
             # Search for all ARUCO markers in the frame
             frame_with_markers = MarkersDetector.run(frame)
             # Select the ARUCO marker to reach first
-            marker_status = TargetMarkerSelector.run(frame_with_markers,
-                                                     offset=(0, 0))
+            TargetMarkerSelector.run()
             # Get the velocity commands from the automatic control module
             if MODE.status == MODE.AUTO_FLIGHT:
-                VisualControl.run(marker_status)
+                VisualControl.run()
             # Send the commands to the UAV
-            TelloActuators.run(RCStatus)
+            TelloActuators.send_rc_command()
             # Update pygame display window
             variables_to_print = merge_dicts([TelloSensors.__get_dict__(),
                                               MODE.__get_dict__(),
                                               RCStatus.__get_dict__(),
-                                              marker_status.__get_dict__(),
+                                              MarkerStatus.__get_dict__(),
                                               MarkersMemory.__get_dict__()])
             Display.run(frame_with_markers, variables_to_print)
         print('Image processing thread stopped')

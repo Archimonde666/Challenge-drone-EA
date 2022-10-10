@@ -13,18 +13,14 @@ class TelloActuators:
         cls.tello = tello
 
     @classmethod
-    def run(cls, rc_status: type(RCStatus)):
-        cls.update_rc_command(rc_status)
-
-    @classmethod
-    def update_rc_command(cls, rc_status: RCStatus):
+    def send_rc_command(cls):
         """Update routine. Send velocities to Tello.
         """
         cls.tello.send_rc_control(
-            rc_status.a,  # left_right_velocity,
-            rc_status.b,  # for_back_velocity,
-            rc_status.c,  # up_down_velocity,
-            rc_status.d,  # yaw_velocity,
+            RCStatus.a,  # left_right_velocity,
+            RCStatus.b,  # for_back_velocity,
+            RCStatus.c,  # up_down_velocity,
+            RCStatus.d,  # yaw_velocity,
         )
 
     @classmethod

@@ -1,4 +1,4 @@
-from parameters import ScreenPosition, DRONE_POS, RED, GREEN, BLUE, LAPS, Angle, Distance
+from parameters import ScreenPosition, DRONE_POS, LAPS, Angle, Distance, MARKER_OFFSET
 from MarkersDetector import MarkersDetector
 from MarkersMemory import MarkersMemory
 from MarkerStatus import MarkerStatus
@@ -14,18 +14,13 @@ class TargetMarkerSelector:
     then returns the corresponding MarkerStatus class filled with the position of the Tello relatively
     to this marker
     """
-    marker_pos: ScreenPosition = (0.0, 0.0)
-    offset: tuple = (0, 0)
-    target_point: ScreenPosition = ScreenPosition((0, 0))
 
     @classmethod
     def setup(cls):
         MarkerStatus.reset()
 
     @classmethod
-    def run(cls, frame: numpy.ndarray,
-            offset: tuple = (0, 0)) -> type(MarkerStatus):
-
+    def run(cls):
         MarkersMemory.update(MarkersDetector.ids, MarkersDetector.corners)
         target_marker_id, corners = cls._get_target_marker(MarkersDetector.ids, MarkersDetector.corners)
         if MarkersMemory.current_target_marker_id == -1:
@@ -70,13 +65,13 @@ class TargetMarkerSelector:
         #     else:
         #         MarkersMemory.current_target_marker_id = -1
 
-        cls.offset = ScreenPosition((int(offset[0] * width),
-                                     int(offset[1] * height)))
-        cls.marker_pos = ScreenPosition((center_pt[0] + cls.offset[0],
-                                         center_pt[1] + cls.offset[1]))
+        offset = ScreenPosition((int(MARKER_OFFSET[0] * width),
+                                 int(MARKER_OFFSET[1] * height)))
+        target_pt = ScreenPosition((center_pt[0] + offset[0],
+                                    center_pt[1] + offset[1]))
         # DRONE_POS is a tuple (x, y) that represents the position of the UAV on the pygame display
-        m_angle = numpy.pi + cls._angle_between(DRONE_POS, cls.marker_pos)
-        m_distance = cls._length_segment(DRONE_POS, cls.marker_pos)
+        m_angle = numpy.pi + cls._angle_between(DRONE_POS, target_pt)
+        m_distance = cls._length_segment(DRONE_POS, target_pt)
 
         # update output
         MarkerStatus.id = target_marker_id
@@ -86,13 +81,14 @@ class TargetMarkerSelector:
         MarkerStatus.right_pt = right_pt
         MarkerStatus.bottom_pt = bottom_pt
         MarkerStatus.top_pt = top_pt
+        MarkerStatus.offset = offset
+        MarkerStatus.target_pt = target_pt
         MarkerStatus.m_angle = m_angle
         MarkerStatus.m_distance = m_distance
         MarkerStatus.height = height
         MarkerStatus.height_lr_delta = l_height - r_height
         MarkerStatus.width = width
         MarkerStatus.width_tb_delta = t_width - b_width
-        return MarkerStatus
 
     @staticmethod
     def _get_target_marker(ids, corners) -> (int, List[ScreenPosition]):

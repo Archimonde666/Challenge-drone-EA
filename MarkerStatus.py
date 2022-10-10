@@ -18,6 +18,9 @@ class MarkerStatus:
     # Vertical axis
     left_pt: ScreenPosition = ScreenPosition((0, 0))
     right_pt: ScreenPosition = ScreenPosition((0, 0))
+    offset: ScreenPosition = ScreenPosition((0, 0))
+
+    target_pt: ScreenPosition = ScreenPosition((0, 0))
 
     # angle and distance between marker and drone
     m_angle: Angle = Angle(0)
@@ -38,6 +41,8 @@ class MarkerStatus:
         cls.bottom_pt = ScreenPosition((0, 0))
         cls.left_pt = ScreenPosition((0, 0))
         cls.right_pt = ScreenPosition((0, 0))
+        cls.offset = ScreenPosition((0, 0))
+        cls.target_pt = ScreenPosition((0, 0))
         cls.m_angle = Angle(0)
         cls.m_distance = Distance(0)
         cls.height = Distance(0)

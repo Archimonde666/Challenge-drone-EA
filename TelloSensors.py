@@ -1,9 +1,8 @@
 import numpy
 
 from DJITelloPy.djitellopy.tello import Tello
-from parameters import MODE, IMG_SIZE, SIGHT_H_ANGLE, SIGHT_V_ANGLE, DEG2RAD
-from RCStatus import RCStatus
-from TelloActuators import TelloActuators
+from parameters import MODE, IMG_SIZE, SIGHT_H_ANGLE, SIGHT_V_ANGLE, DEG2RAD, DRONE_POS, ScreenPosition
+from parameters import SIGHT_V_ANGLE_OFFSET
 
 
 class TelloSensors:
@@ -18,7 +17,7 @@ class TelloSensors:
     pitch: int = 0
     yaw: int = 0
 
-    target_point_offset: tuple[int, int] = (0, 0)
+    trajectory_point: ScreenPosition = (0, 0)
     frame: numpy.ndarray = numpy.ndarray(IMG_SIZE)
 
     @classmethod
@@ -27,7 +26,7 @@ class TelloSensors:
 
     @classmethod
     def run(cls):
-        cls.update_target_point()
+        cls.update_trajectory_point()
         if MODE.status == MODE.TAKEOFF:
             MODE.status = MODE.MANUAL_FLIGHT
             cls.tello.takeoff()
@@ -48,15 +47,13 @@ class TelloSensors:
         cls.yaw = state['yaw']
 
     @classmethod
-    def update_rc(cls, rc_status: RCStatus):
-        if MODE.status == MODE.MANUAL_FLIGHT or MODE.status == MODE.AUTO_FLIGHT:
-            TelloActuators.update_rc_command(rc_status)
-
-    @classmethod
-    def update_target_point(cls):
+    def update_trajectory_point(cls):
         dx = int((IMG_SIZE[0]/2) * (cls.roll * DEG2RAD / SIGHT_H_ANGLE))
-        dy = int((IMG_SIZE[1]/2) * (cls.pitch * DEG2RAD / SIGHT_V_ANGLE))
-        cls.target_point_offset = (dx, dy)
+        dy = int(- IMG_SIZE[1] * numpy.tan(SIGHT_V_ANGLE_OFFSET + (cls.pitch * DEG2RAD)) / (
+                numpy.tan((SIGHT_V_ANGLE / 2) + SIGHT_V_ANGLE_OFFSET + (cls.pitch * DEG2RAD))
+                + numpy.tan((SIGHT_V_ANGLE / 2) - SIGHT_V_ANGLE_OFFSET - (cls.pitch * DEG2RAD))))
+        # dy = int((IMG_SIZE[1]/2) * (cls.pitch * DEG2RAD / SIGHT_V_ANGLE))
+        cls.trajectory_point = ScreenPosition((DRONE_POS[0] + dx, DRONE_POS[1] + dy))
 
     @classmethod
     def __get_dict__(cls) -> dict:

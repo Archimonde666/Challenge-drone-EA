@@ -1,7 +1,7 @@
 from parameters import RAD2DEG, FPS, MODE
 from RCStatus import RCStatus
 from MarkersMemory import MarkersMemory
-from TargetMarkerSelector import TargetMarkerSelector
+from TelloSensors import TelloSensors
 from MarkerStatus import MarkerStatus
 
 
@@ -25,15 +25,15 @@ class VisualControl:
     cmp: int = 0  # Counts the successive frames without any detected marker
 
     @classmethod
-    def run(cls, target_marker: MarkerStatus) -> type(RCStatus):
+    def run(cls) -> type(RCStatus):
         if MarkersMemory.passing_gate:
             dh = 0
             dx = 0
             dy = 0
         else:
-            dh = target_marker.height_lr_delta
-            dx = target_marker.center_pt[0] + TargetMarkerSelector.offset[0] - TargetMarkerSelector.target_point[0]
-            dy = target_marker.center_pt[1] + TargetMarkerSelector.offset[1] - TargetMarkerSelector.target_point[1]
+            dh = MarkerStatus.height_lr_delta
+            dx = MarkerStatus.target_pt[0] - TelloSensors.trajectory_point[0]
+            dy = MarkerStatus.center_pt[1] - TelloSensors.trajectory_point[1]
 
         if MarkersMemory.current_target_marker_id != -1:
             # Left/Right velocity control

@@ -2,9 +2,8 @@ import numpy
 import pygame
 import cv2
 from parameters import RED, GREEN, BLUE, IMG_SIZE, SCREEN_SIZE, ScreenPosition, DRONE_POS, DEG2RAD
-from parameters import SIGHT_V_ANGLE, SIGHT_V_ANGLE_OFFSET, SIGHT_H_ANGLE
+from parameters import SIGHT_V_ANGLE, SIGHT_V_ANGLE_OFFSET
 from MarkerStatus import MarkerStatus
-from TargetMarkerSelector import TargetMarkerSelector
 from TelloSensors import TelloSensors
 
 from typing import Any
@@ -73,51 +72,55 @@ class Display:
 
     @classmethod
     def draw(cls, frame: numpy.ndarray):
-        if MarkerStatus.id == -1:
-            return
-        cv2.aruco.drawDetectedMarkers(frame,
-                                      numpy.array([[MarkerStatus.corners]]),
-                                      numpy.array([[MarkerStatus.id]]),
-                                      borderColor=RED)
-        cv2.line(frame,
-                 MarkerStatus.top_pt,
-                 MarkerStatus.bottom_pt,
-                 RED, 2)
-        cv2.line(frame,
-                 MarkerStatus.left_pt,
-                 MarkerStatus.right_pt,
-                 RED, 2)
+        if MarkerStatus.id != -1:
+            cv2.aruco.drawDetectedMarkers(frame,
+                                          numpy.array([[MarkerStatus.corners]]),
+                                          numpy.array([[MarkerStatus.id]]),
+                                          borderColor=RED)
+            cv2.line(frame,
+                     MarkerStatus.top_pt,
+                     MarkerStatus.bottom_pt,
+                     RED, 2)
+            cv2.line(frame,
+                     MarkerStatus.left_pt,
+                     MarkerStatus.right_pt,
+                     RED, 2)
 
-        top_pt_with_offset = tuple(numpy.array(MarkerStatus.top_pt) + numpy.array(TargetMarkerSelector.offset))
-        bottom_pt_with_offset = tuple(numpy.array(MarkerStatus.bottom_pt) + numpy.array(TargetMarkerSelector.offset))
-        left_pt_with_offset = tuple(numpy.array(MarkerStatus.left_pt) + numpy.array(TargetMarkerSelector.offset))
-        right_pt_with_offset = tuple(numpy.array(MarkerStatus.right_pt) + numpy.array(TargetMarkerSelector.offset))
+            top_pt_with_offset = (MarkerStatus.top_pt[0] + MarkerStatus.offset[0],
+                                  MarkerStatus.top_pt[1] + MarkerStatus.offset[1])
+            bottom_pt_with_offset = (MarkerStatus.bottom_pt[0] + MarkerStatus.offset[0],
+                                     MarkerStatus.bottom_pt[1] + MarkerStatus.offset[1])
+            left_pt_with_offset = (MarkerStatus.left_pt[0] + MarkerStatus.offset[0],
+                                   MarkerStatus.left_pt[1] + MarkerStatus.offset[1])
+            right_pt_with_offset = (MarkerStatus.right_pt[0] + MarkerStatus.offset[0],
+                                    MarkerStatus.right_pt[1] + MarkerStatus.offset[1])
 
-        cv2.line(frame,
-                 top_pt_with_offset,
-                 bottom_pt_with_offset,
-                 RED, 2)
-        cv2.line(frame,
-                 left_pt_with_offset,
-                 right_pt_with_offset,
-                 RED, 2)
+            cv2.line(frame,
+                     top_pt_with_offset,
+                     bottom_pt_with_offset,
+                     RED, 2)
+            cv2.line(frame,
+                     left_pt_with_offset,
+                     right_pt_with_offset,
+                     RED, 2)
+
+        roll = TelloSensors.roll * DEG2RAD
+        dy = IMG_SIZE[0] / 2 * numpy.tan(roll)
 
         pitch = TelloSensors.pitch * DEG2RAD
-        horizon_y = numpy.tan(SIGHT_V_ANGLE_OFFSET + pitch) / (
-                    numpy.tan((SIGHT_V_ANGLE / 2) + SIGHT_V_ANGLE_OFFSET + pitch)
-                    + numpy.tan((SIGHT_V_ANGLE / 2) - SIGHT_V_ANGLE_OFFSET - pitch))
-        lh = (0, horizon_y)
-        rh = (IMG_SIZE[0], horizon_y)
+        horizon_y = int(IMG_SIZE[1] * numpy.tan(SIGHT_V_ANGLE_OFFSET + pitch) / (
+                numpy.tan((SIGHT_V_ANGLE / 2) + SIGHT_V_ANGLE_OFFSET + pitch)
+                + numpy.tan((SIGHT_V_ANGLE / 2) - SIGHT_V_ANGLE_OFFSET - pitch)))
+        lh = ScreenPosition((0, int(horizon_y + dy)))
+        rh = ScreenPosition((IMG_SIZE[0], int(horizon_y - dy)))
 
-        # cv2.line(frame,
-        #          lh,
-        #          rh,
-        #          (0, 0, 0), 1)
+        cv2.line(frame,
+                 lh,
+                 rh,
+                 (0, 0, 0), 2)
 
-        target_point = ScreenPosition((DRONE_POS[0] + TelloSensors.target_point_offset[0],
-                                       DRONE_POS[1] + TelloSensors.target_point_offset[1]))
         cv2.drawMarker(frame,
-                       target_point,
+                       TelloSensors.trajectory_point,
                        color=GREEN,
                        markerType=cv2.MARKER_CROSS,
                        thickness=2)
@@ -127,6 +130,6 @@ class Display:
                        markerType=cv2.MARKER_CROSS,
                        thickness=2)
         cv2.line(frame,
-                 target_point,
-                 TargetMarkerSelector.marker_pos,
+                 TelloSensors.trajectory_point,
+                 MarkerStatus.target_pt,
                  BLUE, 2)
