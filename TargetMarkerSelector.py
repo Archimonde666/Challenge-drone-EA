@@ -57,16 +57,20 @@ class TargetMarkerSelector:
         top_pt = cls._get_midpoint([tl, tr])
 
         height = cls._length_segment(bottom_pt, top_pt)
+        l_height = cls._length_segment(tl, bl)
+        r_height = cls._length_segment(tr, br)
         width = cls._length_segment(left_pt, right_pt)
+        t_width = cls._length_segment(tl, tr)
+        b_width = cls._length_segment(bl, br)
 
-        if height > 50 or width > 50:
-            MarkersMemory.passing_gate = True
-            if target_marker_id < MarkersMemory.highest_marker_id:
-                MarkersMemory.current_target_marker_id = target_marker_id + 1
-            elif LAPS:
-                MarkersMemory.current_target_marker_id = 0
-            else:
-                MarkersMemory.current_target_marker_id = -1
+        # if height > 50 or width > 50:
+        #     MarkersMemory.passing_gate = True
+        #     if target_marker_id < MarkersMemory.highest_marker_id:
+        #         MarkersMemory.current_target_marker_id = target_marker_id + 1
+        #     elif LAPS:
+        #         MarkersMemory.current_target_marker_id = 0
+        #     else:
+        #         MarkersMemory.current_target_marker_id = -1
 
         cls.offset = ScreenPosition((int(offset[0] * width),
                                      int(offset[1] * height)))
@@ -89,7 +93,9 @@ class TargetMarkerSelector:
         MarkerStatus.m_angle = m_angle
         MarkerStatus.m_distance = m_distance
         MarkerStatus.height = height
+        MarkerStatus.height_lr_delta = l_height - r_height
         MarkerStatus.width = width
+        MarkerStatus.width_tb_delta = t_width - b_width
         return MarkerStatus
 
     @staticmethod

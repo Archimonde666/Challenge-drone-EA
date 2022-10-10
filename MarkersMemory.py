@@ -10,7 +10,7 @@ class MarkersMemory:
                                             marker n°1 reliability: float}
                                     :
     """
-    current_target_marker_id: int = 0
+    current_target_marker_id: int = 1
     passing_gate: bool = False
     cmp: int = 0
     markers_screen_pos: dict = {}

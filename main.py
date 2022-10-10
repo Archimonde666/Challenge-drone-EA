@@ -94,7 +94,7 @@ class ImageProcess:
             frame_with_markers = MarkersDetector.run(frame)
             # Select the ARUCO marker to reach first
             marker_status = TargetMarkerSelector.run(frame_with_markers,
-                                                     offset=(-4, 0))
+                                                     offset=(0, 0))
             # Get the velocity commands from the automatic control module
             if MODE.status == MODE.AUTO_FLIGHT:
                 VisualControl.run(marker_status)

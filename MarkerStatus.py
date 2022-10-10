@@ -26,6 +26,9 @@ class MarkerStatus:
     height: Distance = Distance(0)
     width: Distance = Distance(0)
 
+    height_lr_delta = Distance(0)
+    width_tb_delta = Distance(0)
+
     @classmethod
     def reset(cls):
         cls.id = -1
@@ -39,6 +42,8 @@ class MarkerStatus:
         cls.m_distance = Distance(0)
         cls.height = Distance(0)
         cls.width = Distance(0)
+        cls.height_lr_delta = Distance(0)
+        cls.width_tb_delta = Distance(0)
 
     @classmethod
     def __get_dict__(cls) -> dict:
@@ -46,5 +51,6 @@ class MarkerStatus:
                     'm_angle': int(cls.m_angle * RAD2DEG),
                     'm_distance': cls.m_distance,
                     'm_height': cls.height,
-                    'm_width': cls.width}
+                    'm_width': cls.width,
+                    'height_delta': cls.height_lr_delta}
         return ms
