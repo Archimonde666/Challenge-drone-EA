@@ -1,6 +1,8 @@
 import math
 from typing import List, NewType
 
+import numpy
+
 Distance = NewType('Pixels', float)
 Angle = NewType('Radians', float)
 ScreenPosition = NewType('tuple(Pixels, Pixels)', tuple[int, int])
@@ -22,14 +24,15 @@ DRONE_POS: ScreenPosition = ScreenPosition((IMG_SIZE[0] // 2, IMG_SIZE[1] // 2))
 LAPS: bool = True
 highest_marker_index: int = 10
 
-SIGHT_V_ANGLE: Angle = Angle(42 * DEG2RAD)
+SIGHT_V_ANGLE: Angle = Angle(41.6 * DEG2RAD)
+SIGHT_V_ANGLE_OFFSET: Angle = Angle(11.5 * DEG2RAD)
 SIGHT_H_ANGLE: Angle = Angle(53.6 * DEG2RAD)
 
 
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
-    status: int = REAL
+    status: int = SIMULATION
 
 
 class RUN:

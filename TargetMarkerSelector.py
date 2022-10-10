@@ -2,11 +2,9 @@ from parameters import ScreenPosition, DRONE_POS, RED, GREEN, BLUE, LAPS, Angle,
 from MarkersDetector import MarkersDetector
 from MarkersMemory import MarkersMemory
 from MarkerStatus import MarkerStatus
-from TelloSensors import TelloSensors
 
 from typing import List
 
-import cv2
 import numpy
 
 
@@ -80,8 +78,6 @@ class TargetMarkerSelector:
         m_angle = numpy.pi + cls._angle_between(DRONE_POS, cls.marker_pos)
         m_distance = cls._length_segment(DRONE_POS, cls.marker_pos)
 
-        cls.draw(frame)
-
         # update output
         MarkerStatus.id = target_marker_id
         MarkerStatus.corners = corners
@@ -136,44 +132,3 @@ class TargetMarkerSelector:
     def _length_segment(p1: ScreenPosition, p2: ScreenPosition) -> Distance:
         length = numpy.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
         return Distance(length)
-
-    @classmethod
-    def draw(cls, frame: numpy.ndarray):
-        if MarkerStatus.id == -1:
-            return
-        cv2.aruco.drawDetectedMarkers(frame,
-                                      numpy.array([[MarkerStatus.corners]]),
-                                      numpy.array([[MarkerStatus.id]]),
-                                      borderColor=RED)
-        cv2.line(frame,
-                 MarkerStatus.top_pt,
-                 MarkerStatus.bottom_pt,
-                 RED, 2)
-        cv2.line(frame,
-                 MarkerStatus.left_pt,
-                 MarkerStatus.right_pt,
-                 RED, 2)
-
-        top_pt_with_offset = tuple(numpy.array(MarkerStatus.top_pt) + numpy.array(cls.offset))
-        bottom_pt_with_offset = tuple(numpy.array(MarkerStatus.bottom_pt) + numpy.array(cls.offset))
-        left_pt_with_offset = tuple(numpy.array(MarkerStatus.left_pt) + numpy.array(cls.offset))
-        right_pt_with_offset = tuple(numpy.array(MarkerStatus.right_pt) + numpy.array(cls.offset))
-
-        cv2.line(frame,
-                 top_pt_with_offset,
-                 bottom_pt_with_offset,
-                 RED, 2)
-        cv2.line(frame,
-                 left_pt_with_offset,
-                 right_pt_with_offset,
-                 RED, 2)
-
-        if DRONE_POS[0] != 0:
-            cls.target_point = ScreenPosition((DRONE_POS[0] + TelloSensors.target_point_offset[0],
-                                               DRONE_POS[1] + TelloSensors.target_point_offset[1]))
-            cv2.drawMarker(frame, cls.target_point, color=GREEN, markerType=cv2.MARKER_CROSS, thickness=2)
-            cv2.drawMarker(frame, DRONE_POS, color=RED, markerType=cv2.MARKER_CROSS, thickness=2)
-            cv2.line(frame,
-                     cls.target_point,
-                     cls.marker_pos,
-                     BLUE, 2)
