@@ -32,8 +32,8 @@ MARKER_OFFSET: tuple = (0, -4)
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
-    status: int = REAL
-
+    status: int = SIMULATION
+    
 
 class RUN:
     STOP: bool = False
