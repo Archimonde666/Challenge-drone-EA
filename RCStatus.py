@@ -26,3 +26,7 @@ class RCStatus:
                     'c': cls.c,
                     'd': cls.d}
         return rc
+
+    @classmethod
+    def toStr(cls):
+        return "rc " + str(cls.a) + " " + str(cls.b) + " " + str(cls.c) + " " + str(cls.d)

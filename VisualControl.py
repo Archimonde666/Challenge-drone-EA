@@ -30,7 +30,7 @@ class VisualControl:
     cmp: int = 0  # Counts the successive frames without any detected marker
 
     @classmethod
-    def run(cls, dt) -> type(RCStatus):
+    def run(cls) -> type(RCStatus):
         if MarkersMemory.passing_gate:
             dh = 0
             dx = 0

@@ -25,9 +25,9 @@ def setup():
                           rc_yaw_threshold=40)
     TargetMarkerSelector.setup()
     tello, frame_reader = init_env()
-    tello.LOGGER.setLevel(logging.INFO)
+    tello.LOGGER.setLevel(logging.WARN)
     fh = logging.FileHandler(filename='Tello.log')
-    fileLogFormat='%(asctime)s - %(levelname)s - %(message)s'
+    fileLogFormat = '%(asctime)s - %(levelname)s - %(message)s'
     fileFormatter = logging.Formatter(fileLogFormat)
     Tello.LOGGER.addHandler(fh)
     FrameReader.setup(frame_reader)
@@ -106,7 +106,7 @@ class ImageProcess:
             TargetMarkerSelector.run()
             # Get the velocity commands from the automatic control module
             if MODE.status == MODE.AUTO_FLIGHT:
-                VisualControl.run(dt)
+                VisualControl.run()
             # Send the commands to the UAV
             TelloActuators.send_rc_command()
             # Update pygame display window

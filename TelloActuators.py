@@ -17,14 +17,14 @@ class TelloActuators:
     def send_rc_command(cls):
         """Update routine. Send velocities to Tello.
         """
-        if rc_status.toStr() != cls.previous_RCstate :
+        if RCStatus.toStr() != cls.previous_RCstate:
             cls.tello.send_rc_control(
-                rc_status.a,  # left_right_velocity,
-                rc_status.b,  # for_back_velocity,
-                rc_status.c,  # up_down_velocity,
-                rc_status.d,  # yaw_velocity,
+                RCStatus.a,  # left_right_velocity,
+                RCStatus.b,  # for_back_velocity,
+                RCStatus.c,  # up_down_velocity,
+                RCStatus.d,  # yaw_velocity,
             )
-            cls.previous_RCstate = rc_status.toStr()
+            cls.previous_RCstate = RCStatus.toStr()
 
     @classmethod
     def stop(cls):
