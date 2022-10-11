@@ -18,7 +18,11 @@ def setup():
     ReadUserInput.setup()
     SelectTargetMarker.setup()
     tello, frame_reader = init_env()
-    tello.LOGGER.setLevel(logging.WARN)
+    tello.LOGGER.setLevel(logging.INFO)
+    fh = logging.FileHandler(filename='Tello.log')
+    fileLogFormat='%(asctime)s - %(levelname)s - %(message)s'
+    fileFormatter = logging.Formatter(fileLogFormat)
+    Tello.LOGGER.addHandler(fh)
     FrameReader.setup(frame_reader)
     TelloActuators.setup(tello)
     TelloSensors.setup(tello)
