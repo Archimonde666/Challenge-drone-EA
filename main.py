@@ -93,7 +93,7 @@ class ImageProcess:
             frame_time = time.time()
             dt = frame_time - previous_frame_time
             # Retrieve UAV internal variables
-            TelloSensors.run()
+            TelloSensors.run(dt)
             # Retrieve most recent frame from the Tello
             frame = FrameReader.get_most_recent_frame()
             # Search for all ARUCO markers in the frame
@@ -107,10 +107,11 @@ class ImageProcess:
             TelloActuators.send_rc_command()
             # Update pygame display window
             variables_to_print = merge_dicts([TelloSensors.__get_dict__(),
-                                              MODE.__get_dict__(),
                                               RCStatus.__get_dict__(),
                                               MarkerStatus.__get_dict__(),
-                                              MarkersMemory.__get_dict__()])
+                                              MarkersMemory.__get_dict__(),
+                                              {'FPS': int(1/dt)}
+                                              ])
             Display.run(frame_with_markers, variables_to_print)
             previous_frame_time = frame_time
         print('Image processing thread stopped')

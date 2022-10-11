@@ -35,6 +35,7 @@ class VisualControl:
             dh = 0
             dx = 0
             dy = 0
+
             # RCStatus.reset()
             # if MarkersMemory.cmp < 1:
             # TelloActuators.tello.send_command_without_return('forward 50')
