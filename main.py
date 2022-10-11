@@ -20,7 +20,9 @@ from VisualControl import VisualControl
 def setup():
     MarkersMemory.setup(highest_marker_index)
     Display.setup()
-    UserInputReader.setup()
+    UserInputReader.setup(rc_roll_pitch_threshold=100,
+                          rc_height_threshold=20,
+                          rc_yaw_threshold=40)
     TargetMarkerSelector.setup()
     tello, frame_reader = init_env()
     tello.LOGGER.setLevel(logging.WARN)
@@ -84,9 +86,12 @@ class ImageProcess:
     @classmethod
     def run(cls):
         print('Image processing thread started')
+        previous_frame_time = 0
         while True:
             if cls.stop_request:
                 break
+            frame_time = time.time()
+            dt = frame_time - previous_frame_time
             # Retrieve UAV internal variables
             TelloSensors.run()
             # Retrieve most recent frame from the Tello
@@ -97,7 +102,7 @@ class ImageProcess:
             TargetMarkerSelector.run()
             # Get the velocity commands from the automatic control module
             if MODE.status == MODE.AUTO_FLIGHT:
-                VisualControl.run()
+                VisualControl.run(dt)
             # Send the commands to the UAV
             TelloActuators.send_rc_command()
             # Update pygame display window
@@ -107,6 +112,7 @@ class ImageProcess:
                                               MarkerStatus.__get_dict__(),
                                               MarkersMemory.__get_dict__()])
             Display.run(frame_with_markers, variables_to_print)
+            previous_frame_time = frame_time
         print('Image processing thread stopped')
 
     @classmethod

@@ -5,6 +5,7 @@ from parameters import RUN, IMG_SIZE
 
 import cv2
 import numpy
+import time
 
 
 class FrameReader:
@@ -14,11 +15,15 @@ class FrameReader:
     # have not been processed in time.
     frames_queue: LifoQueue = None
     frame_reader: BackgroundFrameRead = None
+    frame_time = None
+    dt = None
 
     @classmethod
     def setup(cls, frame_reader: BackgroundFrameRead):
         cls.frame_reader = frame_reader
         cls.frames_queue = LifoQueue()
+        cls.frame_time = 0
+        cls.dt = 1
 
     @classmethod
     def update_frame(cls):
@@ -26,6 +31,10 @@ class FrameReader:
             RUN.status = RUN.STOP
         else:
             cls.frames_queue.put_nowait(cls.frame_reader.frame)
+            frame_time = time.time()
+            cls.dt = frame_time - cls.frame_time
+            print(1 / cls.dt)
+            cls.frame_time = frame_time
 
     @classmethod
     def flush_old_frames(cls):

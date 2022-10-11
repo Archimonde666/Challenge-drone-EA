@@ -1,4 +1,4 @@
-from parameters import ScreenPosition, Distance, Angle, RAD2DEG
+from parameters import ScreenPosition, Distance, DRONE_POS
 from typing import List
 
 
@@ -20,11 +20,7 @@ class MarkerStatus:
     right_pt: ScreenPosition = ScreenPosition((0, 0))
     offset: ScreenPosition = ScreenPosition((0, 0))
 
-    target_pt: ScreenPosition = ScreenPosition((0, 0))
-
-    # angle and distance between marker and drone
-    m_angle: Angle = Angle(0)
-    m_distance: Distance = Distance(0)
+    target_pt: ScreenPosition = ScreenPosition(DRONE_POS)
 
     height: Distance = Distance(0)
     width: Distance = Distance(0)
@@ -42,9 +38,7 @@ class MarkerStatus:
         cls.left_pt = ScreenPosition((0, 0))
         cls.right_pt = ScreenPosition((0, 0))
         cls.offset = ScreenPosition((0, 0))
-        cls.target_pt = ScreenPosition((0, 0))
-        cls.m_angle = Angle(0)
-        cls.m_distance = Distance(0)
+        cls.target_pt = ScreenPosition(DRONE_POS)
         cls.height = Distance(0)
         cls.width = Distance(0)
         cls.height_lr_delta = Distance(0)
@@ -53,9 +47,7 @@ class MarkerStatus:
     @classmethod
     def __get_dict__(cls) -> dict:
         ms: dict = {'id': cls.id,
-                    'm_angle': int(cls.m_angle * RAD2DEG),
-                    'm_distance': cls.m_distance,
                     'm_height': cls.height,
                     'm_width': cls.width,
-                    'height_delta': cls.height_lr_delta}
+                    'dh': cls.height_lr_delta}
         return ms

@@ -1,7 +1,8 @@
-from parameters import ScreenPosition, DRONE_POS, LAPS, Angle, Distance, MARKER_OFFSET
+from parameters import ScreenPosition, LAPS, Angle, Distance, MARKER_OFFSET, MODE
 from MarkersDetector import MarkersDetector
 from MarkersMemory import MarkersMemory
 from MarkerStatus import MarkerStatus
+from RCStatus import RCStatus
 
 from typing import List
 
@@ -25,7 +26,11 @@ class TargetMarkerSelector:
         target_marker_id, corners = cls._get_target_marker(MarkersDetector.ids, MarkersDetector.corners)
         if MarkersMemory.current_target_marker_id == -1:
             MarkerStatus.reset()
-            return MarkerStatus
+            if MODE.status == MODE.AUTO_FLIGHT:
+                print('Automatic flight finished')
+                RCStatus.reset()
+                MODE.status = MODE.MANUAL_FLIGHT
+            return
         elif target_marker_id == -1:
             # If no markers are found on the current frame, the short-term memory provides
             # data on the last screen position of the targeted marker
@@ -35,11 +40,19 @@ class TargetMarkerSelector:
                 reliability = MarkersMemory.markers_screen_pos[str(target_marker_id)]['reliability']
                 if reliability < 0.25:
                     MarkerStatus.reset()
-                    return MarkerStatus
+                    if MODE.status == MODE.AUTO_FLIGHT:
+                        print('Next marker lost for too long, switching back to manual mode')
+                        RCStatus.reset()
+                        MODE.status = MODE.MANUAL_FLIGHT
+                    return
                 br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
             except KeyError:
                 MarkerStatus.reset()
-                return MarkerStatus
+                if MODE.status == MODE.AUTO_FLIGHT:
+                    print('Next marker never seen before, switching back to manual mode')
+                    RCStatus.reset()
+                    MODE.status = MODE.MANUAL_FLIGHT
+                return
         else:
             br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
 
@@ -56,22 +69,19 @@ class TargetMarkerSelector:
         t_width = cls._length_segment(tl, tr)
         b_width = cls._length_segment(bl, br)
 
-        # if height > 50 or width > 50:
-        #     MarkersMemory.passing_gate = True
-        #     if target_marker_id < MarkersMemory.highest_marker_id:
-        #         MarkersMemory.current_target_marker_id = target_marker_id + 1
-        #     elif LAPS:
-        #         MarkersMemory.current_target_marker_id = 0
-        #     else:
-        #         MarkersMemory.current_target_marker_id = -1
+        if height > 60 or width > 60:
+            MarkersMemory.passing_gate = True
+            if target_marker_id < MarkersMemory.highest_marker_id:
+                MarkersMemory.current_target_marker_id = target_marker_id + 1
+            elif LAPS:
+                MarkersMemory.current_target_marker_id = 0
+            else:
+                MarkersMemory.current_target_marker_id = -1
 
         offset = ScreenPosition((int(MARKER_OFFSET[0] * width),
                                  int(MARKER_OFFSET[1] * height)))
         target_pt = ScreenPosition((center_pt[0] + offset[0],
                                     center_pt[1] + offset[1]))
-        # DRONE_POS is a tuple (x, y) that represents the position of the UAV on the pygame display
-        m_angle = numpy.pi + cls._angle_between(DRONE_POS, target_pt)
-        m_distance = cls._length_segment(DRONE_POS, target_pt)
 
         # update output
         MarkerStatus.id = target_marker_id
@@ -83,8 +93,6 @@ class TargetMarkerSelector:
         MarkerStatus.top_pt = top_pt
         MarkerStatus.offset = offset
         MarkerStatus.target_pt = target_pt
-        MarkerStatus.m_angle = m_angle
-        MarkerStatus.m_distance = m_distance
         MarkerStatus.height = height
         MarkerStatus.height_lr_delta = l_height - r_height
         MarkerStatus.width = width

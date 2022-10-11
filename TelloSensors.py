@@ -16,6 +16,7 @@ class TelloSensors:
     roll: int = 0
     pitch: int = 0
     yaw: int = 0
+    height: int = 0
 
     trajectory_point: ScreenPosition = (0, 0)
     frame: numpy.ndarray = numpy.ndarray(IMG_SIZE)
@@ -45,6 +46,7 @@ class TelloSensors:
         cls.roll = state['roll']
         cls.pitch = state['pitch']
         cls.yaw = state['yaw']
+        cls.height = state['h']
 
     @classmethod
     def update_trajectory_point(cls):
@@ -60,5 +62,6 @@ class TelloSensors:
         sensors: dict = {'Battery': cls.battery,
                          'Roll': cls.roll,
                          'Pitch': cls.pitch,
-                         'Yaw': cls.yaw}
+                         'Yaw': cls.yaw,
+                         'Height': cls.height}
         return sensors

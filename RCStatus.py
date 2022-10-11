@@ -13,6 +13,13 @@ class RCStatus:
     d: int = 0  # Yaw velocity
 
     @classmethod
+    def reset(cls):
+        cls.a = 0
+        cls.b = 0
+        cls.c = 0
+        cls.d = 0
+
+    @classmethod
     def __get_dict__(cls) -> dict:
         rc: dict = {'a': cls.a,
                     'b': cls.b,

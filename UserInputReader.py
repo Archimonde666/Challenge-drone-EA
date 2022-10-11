@@ -59,6 +59,7 @@ class UserInputReader:
             elif event.type == pygame.JOYAXISMOTION:
                 if MODE.status == MODE.AUTO_FLIGHT and abs(event.value) > 0.1:
                     print('User input detected, automatic control module disabled')
+                    RCStatus.reset()
                     MODE.status = MODE.MANUAL_FLIGHT
                 axis = cls.joystick_maps[event.joy]['axes'][event.axis]
                 cls.axis_motion(axis, event.value)
@@ -83,20 +84,22 @@ class UserInputReader:
     @classmethod
     def buttons(cls, button: str, key_pressed: bool):
         if button == 'Stop' and key_pressed:
-            RCStatus.a = 0
-            RCStatus.b = 0
-            RCStatus.c = 0
-            RCStatus.d = 0
+            RCStatus.reset()
             RUN.status = RUN.STOP
         elif button == 'Emergency' and key_pressed:
+            RCStatus.reset()
             MODE.status = MODE.EMERGENCY
         elif button == 'Takeoff' and key_pressed:
+            RCStatus.reset()
             MODE.status = MODE.TAKEOFF
         elif button == 'Land' and key_pressed:
+            RCStatus.reset()
             MODE.status = MODE.LAND
         elif button == 'Automatic flight' and key_pressed:
+            RCStatus.reset()
             MODE.status = MODE.AUTO_FLIGHT
         elif MODE.status == MODE.AUTO_FLIGHT and key_pressed:
+            RCStatus.reset()
             MODE.status = MODE.MANUAL_FLIGHT
             print('User input detected, automatic control module disabled')
 
@@ -120,14 +123,32 @@ class UserInputReader:
     @classmethod
     def axis_motion(cls, axis: str, value: float):
         if axis == 'Roll':
-            RCStatus.a = int(cls.rc_threshold[0] * value)
+            if abs(value) > 0.1:
+                RCStatus.a = int(cls.rc_threshold[0] * value)
+            else:
+                RCStatus.a = 0
         elif axis == 'Pitch':
-            RCStatus.b = - int(cls.rc_threshold[0] * value)
+            if abs(value) > 0.1:
+                RCStatus.b = - int(cls.rc_threshold[0] * value)
+            else:
+                RCStatus.b = 0
         elif axis == 'Height':
-            RCStatus.c = - int(cls.rc_threshold[1] * value)
+            if abs(value) > 0.1:
+                RCStatus.c = - int(cls.rc_threshold[1] * value)
+            else:
+                RCStatus.c = 0
         elif axis == 'Yaw':
-            RCStatus.d = int(cls.rc_threshold[2] * value)
+            if abs(value) > 0.1:
+                RCStatus.d = int(cls.rc_threshold[2] * value)
+            else:
+                RCStatus.d = 0
         elif axis == 'Yaw+':
-            RCStatus.d = int(cls.rc_threshold[2] * 0.5 * (value + 1))
+            if abs(value) > 0.1:
+                RCStatus.d = int(cls.rc_threshold[2] * 0.5 * (value + 1))
+            else:
+                RCStatus.d = 0
         elif axis == 'Yaw-':
-            RCStatus.d = int(cls.rc_threshold[2] * 0.5 * (value - 1))
+            if abs(value) > 0.1:
+                RCStatus.d = int(cls.rc_threshold[2] * 0.5 * (value - 1))
+            else:
+                RCStatus.d = 0
