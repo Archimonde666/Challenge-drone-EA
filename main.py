@@ -11,7 +11,8 @@ from subsys_tello_sensors import TelloSensors, FrameReader
 from subsys_tello_actuators import TelloActuators
 from subsys_visual_control import VisualControl
 from threading import Thread
-
+import cv2
+import numpy as np
 
 def setup():
     Display.setup()
@@ -22,7 +23,7 @@ def setup():
     FrameReader.setup(frame_reader)
     TelloActuators.setup(tello)
     TelloSensors.setup(tello)
-    frame_reception_check = ImageProcess.setup(timeout=2)
+    frame_reception_check = ImageProcess.setup(timeout=5)
     return frame_reception_check
 
 
@@ -79,6 +80,14 @@ class ImageProcess:
     @classmethod
     def run(cls):
         print('Image processing thread started')
+        img = None
+        mtx = None
+        CHECKERBOARD = (13,19)
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+        # Creating vector to store vectors of 3D points for each checkerboard image
+        objpoints = []
+        # Creating vector to store vectors of 2D points for each checkerboard image
+        imgpoints = [] 
         while True:
             if cls.stop_request:
                 break
@@ -86,6 +95,42 @@ class ImageProcess:
             TelloSensors.run()
             # Retrieve most recent frame from the Tello
             frame = FrameReader.get_most_recent_frame()
+            
+            
+            
+            
+            #test calibr#test calibr#test calibr#test calibr#test calibr#test calibr#test calibr#test calibr#test calibr
+            #test calibr#test calibr#test calibr#test calibr#test calibr#test calibr#test calibr#test calibr#test calibr
+            #test calibr#test calibr#test calibr#test calibr#test calibr#test calibr#test calibr#test calibr#test calibr
+            
+
+
+
+            # Defining the world coordinates for 3D points
+            objp = np.zeros((1, CHECKERBOARD[0] * CHECKERBOARD[1], 3), np.float32)
+            objp[0,:,:2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
+            prev_img_shape = None
+            gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+            ret, corners = cv2.findChessboardCorners(gray, CHECKERBOARD, cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_FAST_CHECK + cv2.CALIB_CB_NORMALIZE_IMAGE)
+            
+            if ret == True:
+                objpoints.append(objp)
+                # refining pixel coordinates for given 2d points.
+                corners2 = cv2.cornerSubPix(gray, corners, (11,11),(-1,-1), criteria)
+                
+                imgpoints.append(corners2)
+
+                # Draw and display the corners
+                img = cv2.drawChessboardCorners(frame, CHECKERBOARD, corners2, ret)
+            else :
+                img = None
+            
+            
+            
+            #////////////////////////////////////////////////////////////////////////////////////////////////////
+            #////////////////////////////////////////////////////////////////////////////////////////////////////
+            #////////////////////////////////////////////////////////////////////////////////////////////////////
+            
             # Search for all ARUCO markers in the frame
             frame_with_markers = MarkersDetector.run(frame)
             # Select the ARUCO marker to reach first
@@ -102,7 +147,21 @@ class ImageProcess:
                                                          ModeStatus.__get_dict__(),
                                                          RCStatus.__get_dict__(),
                                                          marker_status.__get_dict__()])
-            Display.run(frame_with_markers, variables_to_print)
+            if img is not None :
+                Display.run(img, variables_to_print)
+                ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+                print("/////////////////////////////////////////////")
+                print(mtx)
+                #print("dist : \n")
+                #print(dist)
+                #print("rvecs : \n")
+                #print(rvecs)
+                #print("tvecs : \n")
+                #print(tvecs)
+            elif mtx is not None :
+                Display.run(cv2.undistort(frame_with_markers,mtx,dist,None),variables_to_print)
+            else :
+                Display.run(frame_with_markers, variables_to_print)
         print('Image processing thread stopped')
 
     @classmethod
