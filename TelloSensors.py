@@ -19,7 +19,6 @@ class TelloSensors:
     height: int = 0
     ax: float = 0.0
     vx: float = 0.0
-    vy: float = 0.0
     x: float = 0.0
     yaw_reference: int = 0
 
@@ -92,6 +91,5 @@ class TelloSensors:
                          'Height': cls.height,
                          'ax': round(cls.ax, 6),
                          'vx': round(cls.vx, 3),
-                         'vy': round(cls.vy, 3),
                          'x': round(cls.x, 3)}
         return sensors

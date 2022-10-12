@@ -19,7 +19,7 @@ class UserInputReader:
 
     @classmethod
     def setup(cls,
-              rc_roll_pitch_threshold: int = 100,
+              rc_roll_pitch_threshold: int = 5,
               rc_height_threshold: int = 20,
               rc_yaw_threshold: int = 20):
         cls.rc_threshold = [rc_roll_pitch_threshold, rc_height_threshold, rc_yaw_threshold]

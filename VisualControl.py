@@ -31,22 +31,23 @@ class VisualControl:
         dh = MarkerStatus.height_lr_delta
         dx = MarkerStatus.target_pt[0] - TelloSensors.trajectory_point[0]
         dy = MarkerStatus.target_pt[1] - TelloSensors.trajectory_point[1]
-
+        d = numpy.sqrt(dx**2 + dy**2)
+        # print(d)
         if MarkersMemory.passing_gate:
             RCStatus.a = 0
             if ENV.status == ENV.SIMULATION:
                 RCStatus.b = 25
             elif ENV.status == ENV.REAL:
-                RCStatus.b = int(10 * (1 - TelloSensors.x))
+                RCStatus.b = 5
             RCStatus.c = 0
             RCStatus.d = 0
             if (ENV.status == ENV.SIMULATION and TelloSensors.x > 2.5) \
-                    or (ENV.status == ENV.REAL and abs(1 - TelloSensors.x) < 0.1):
+                    or (ENV.status == ENV.REAL and TelloSensors.x > 0.75):
                 MarkersMemory.get_new_target()
                 MarkersMemory.update_target()
 
         elif (MarkerStatus.height > 55 or MarkerStatus.width > 55) \
-                and dh == 0 and dx < 5:
+                and dh == 0 and d < 10:
             print('Passing gate...')
             MarkersMemory.passing_gate = True
             RCStatus.reset()
