@@ -1,7 +1,7 @@
 from queue import LifoQueue
 from djitellopy.tello import BackgroundFrameRead
 
-from parameters import RUN, IMG_SIZE
+from parameters import RUN, IMG_SIZE, ENV
 
 import cv2
 import numpy
@@ -36,6 +36,12 @@ class FrameReader:
     @classmethod
     def get_most_recent_frame(cls) -> numpy.ndarray:
         raw_frame = cls.frames_queue.get()
-        frame = cv2.resize(raw_frame, IMG_SIZE)
+        if ENV.status == ENV.SIMULATION:
+            camera_frame = raw_frame[int(IMG_SIZE[1]/3):, int(IMG_SIZE[1]/6):IMG_SIZE[0] - int(IMG_SIZE[1]/6)]
+            frame = cv2.resize(camera_frame, IMG_SIZE)
+        elif ENV.status == ENV.REAL:
+            frame = cv2.resize(raw_frame, IMG_SIZE)
+        else:
+            frame = raw_frame
         cls.flush_old_frames()
         return frame

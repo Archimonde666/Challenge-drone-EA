@@ -1,4 +1,5 @@
 from parameters import RUN, MODE
+from MarkersMemory import MarkersMemory
 from RCStatus import RCStatus
 from Gamepad import Gamepad
 
@@ -100,6 +101,7 @@ class UserInputReader:
             MODE.status = MODE.AUTO_FLIGHT
         elif MODE.status == MODE.AUTO_FLIGHT and key_pressed:
             RCStatus.reset()
+            MarkersMemory.passing_gate = False
             MODE.status = MODE.MANUAL_FLIGHT
             print('User input detected, automatic control module disabled')
 

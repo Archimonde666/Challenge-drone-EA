@@ -1,12 +1,14 @@
-from parameters import ScreenPosition, LAPS, Angle, Distance, MARKER_OFFSET, MODE
+from parameters import ScreenPosition, Angle, Distance, MARKER_OFFSET, MODE
 from MarkersDetector import MarkersDetector
 from MarkersMemory import MarkersMemory
 from MarkerStatus import MarkerStatus
 from RCStatus import RCStatus
+# from TelloSensors import TelloSensors
 
 from typing import List
 
 import numpy
+# import cv2
 
 
 class TargetMarkerSelector:
@@ -21,17 +23,9 @@ class TargetMarkerSelector:
         MarkerStatus.reset()
 
     @classmethod
-    def run(cls):
-        MarkersMemory.update(MarkersDetector.ids, MarkersDetector.corners)
+    def run(cls, frame):
         target_marker_id, corners = cls._get_target_marker(MarkersDetector.ids, MarkersDetector.corners)
-        if MarkersMemory.current_target_marker_id == -1:
-            MarkerStatus.reset()
-            if MODE.status == MODE.AUTO_FLIGHT:
-                print('Automatic flight finished')
-                RCStatus.reset()
-                MODE.status = MODE.MANUAL_FLIGHT
-            return
-        elif target_marker_id == -1:
+        if target_marker_id == -1:
             # If no markers are found on the current frame, the short-term memory provides
             # data on the last screen position of the targeted marker
             try:
@@ -41,7 +35,7 @@ class TargetMarkerSelector:
                 if reliability < 0.25:
                     MarkerStatus.reset()
                     if MODE.status == MODE.AUTO_FLIGHT:
-                        print('Next marker lost for too long, switching back to manual mode')
+                        print('Target marker lost for too long, switching back to manual mode')
                         RCStatus.reset()
                         MODE.status = MODE.MANUAL_FLIGHT
                     return
@@ -49,7 +43,7 @@ class TargetMarkerSelector:
             except KeyError:
                 MarkerStatus.reset()
                 if MODE.status == MODE.AUTO_FLIGHT:
-                    print('Next marker never seen before, switching back to manual mode')
+                    print('Target marker never seen before, switching back to manual mode')
                     RCStatus.reset()
                     MODE.status = MODE.MANUAL_FLIGHT
                 return
@@ -68,15 +62,6 @@ class TargetMarkerSelector:
         width = cls._length_segment(left_pt, right_pt)
         t_width = cls._length_segment(tl, tr)
         b_width = cls._length_segment(bl, br)
-
-        if height > 60 or width > 60:
-            MarkersMemory.passing_gate = True
-            if target_marker_id < MarkersMemory.highest_marker_id:
-                MarkersMemory.current_target_marker_id = target_marker_id + 1
-            elif LAPS:
-                MarkersMemory.current_target_marker_id = 0
-            else:
-                MarkersMemory.current_target_marker_id = -1
 
         offset = ScreenPosition((int(MARKER_OFFSET[0] * width),
                                  int(MARKER_OFFSET[1] * height)))

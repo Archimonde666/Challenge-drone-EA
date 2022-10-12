@@ -20,7 +20,7 @@ SCREEN_SIZE: tuple[int, int] = (800, 480)
 DRONE_POS: ScreenPosition = ScreenPosition((IMG_SIZE[0] // 2, IMG_SIZE[1] // 2))
 
 LAPS: bool = False
-highest_marker_index: int = 1
+highest_marker_index: int = 6
 
 SIGHT_V_ANGLE: Angle = Angle(41.6 * DEG2RAD)
 SIGHT_V_ANGLE_OFFSET: Angle = Angle(11.5 * DEG2RAD)

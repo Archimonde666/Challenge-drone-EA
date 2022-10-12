@@ -10,7 +10,7 @@ from MarkersDetector import MarkersDetector
 from TelloSensors import TelloSensors
 from MarkersMemory import MarkersMemory
 from MarkerStatus import MarkerStatus
-from parameters import MODE, RUN, ENV, highest_marker_index, merge_dicts
+from parameters import MODE, RUN, ENV, merge_dicts
 from TargetMarkerSelector import TargetMarkerSelector
 from TelloActuators import TelloActuators
 from UserInputReader import UserInputReader
@@ -18,7 +18,6 @@ from VisualControl import VisualControl
 
 
 def setup():
-    MarkersMemory.setup(highest_marker_index)
     Display.setup()
     UserInputReader.setup(rc_roll_pitch_threshold=100,
                           rc_height_threshold=20,
@@ -102,11 +101,13 @@ class ImageProcess:
             frame = FrameReader.get_most_recent_frame()
             # Search for all ARUCO markers in the frame
             frame_with_markers = MarkersDetector.run(frame)
+            # Update the last screen position of all makers
+            MarkersMemory.update_memory()
             # Select the ARUCO marker to reach first
-            TargetMarkerSelector.run()
+            TargetMarkerSelector.run(frame)
             # Get the velocity commands from the automatic control module
             if MODE.status == MODE.AUTO_FLIGHT:
-                VisualControl.run()
+                VisualControl.run(dt)
             # Send the commands to the UAV
             TelloActuators.send_rc_command()
             # Update pygame display window
