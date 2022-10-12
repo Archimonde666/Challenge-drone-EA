@@ -32,7 +32,7 @@ MARKER_OFFSET: tuple = (0, -4)
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
-    status: int = REAL
+    status: int = SIMULATION
     
 
 class RUN:
@@ -47,6 +47,7 @@ class MODE:
     LAND: int = 2
     MANUAL_FLIGHT: int = 3
     AUTO_FLIGHT: int = 4
+    AUTO_RESEARCH: int = 5
     status = LAND
 
     @classmethod

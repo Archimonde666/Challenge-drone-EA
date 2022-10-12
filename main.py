@@ -106,7 +106,7 @@ class ImageProcess:
             # Select the ARUCO marker to reach first
             TargetMarkerSelector.run(frame)
             # Get the velocity commands from the automatic control module
-            if MODE.status == MODE.AUTO_FLIGHT:
+            if MODE.status == MODE.AUTO_FLIGHT or MODE.status == MODE.AUTO_RESEARCH:
                 VisualControl.run(dt)
             # Send the commands to the UAV
             TelloActuators.send_rc_command()

@@ -59,6 +59,6 @@ class MarkersMemory:
             mm: dict = {'Target id': cls.current_target_marker_id,
                         'Trust (%)': 100 * cls.markers_screen_pos[str(cls.current_target_marker_id)]['reliability']}
         except KeyError:
-            mm: dict = {'Target id': 'N/D',
+            mm: dict = {'Target id': cls.current_target_marker_id,
                         'Trust (%)': 'N/D'}
         return mm

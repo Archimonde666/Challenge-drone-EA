@@ -1,7 +1,7 @@
 import numpy
 import pygame
 import cv2
-from parameters import RED, GREEN, BLUE, IMG_SIZE, SCREEN_SIZE, ScreenPosition, DRONE_POS, DEG2RAD
+from parameters import RED, GREEN, BLUE, IMG_SIZE, SCREEN_SIZE, ScreenPosition, DRONE_POS, DEG2RAD, ENV
 from parameters import SIGHT_V_ANGLE, SIGHT_V_ANGLE_OFFSET
 from MarkerStatus import MarkerStatus
 from TelloSensors import TelloSensors
@@ -111,6 +111,7 @@ class Display:
         horizon_y = int(IMG_SIZE[1] * numpy.tan(SIGHT_V_ANGLE_OFFSET + pitch) / (
                 numpy.tan((SIGHT_V_ANGLE / 2) + SIGHT_V_ANGLE_OFFSET + pitch)
                 + numpy.tan((SIGHT_V_ANGLE / 2) - SIGHT_V_ANGLE_OFFSET - pitch)))
+
         lh = ScreenPosition((0, int(horizon_y + dy)))
         rh = ScreenPosition((IMG_SIZE[0], int(horizon_y - dy)))
 

@@ -32,21 +32,25 @@ class TargetMarkerSelector:
                 target_marker_id = MarkersMemory.current_target_marker_id
                 corners = MarkersMemory.markers_screen_pos[str(target_marker_id)]['corners']
                 reliability = MarkersMemory.markers_screen_pos[str(target_marker_id)]['reliability']
-                if reliability < 0.25:
+                if reliability < 0.25 and not MarkersMemory.passing_gate:
                     MarkerStatus.reset()
                     if MODE.status == MODE.AUTO_FLIGHT:
-                        print('Target marker lost for too long, switching back to manual mode')
+                        print('Target marker lost for too long, research mode activated')
                         RCStatus.reset()
-                        MODE.status = MODE.MANUAL_FLIGHT
+                        MODE.status = MODE.AUTO_RESEARCH
                     return
                 br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
             except KeyError:
                 MarkerStatus.reset()
                 if MODE.status == MODE.AUTO_FLIGHT:
-                    print('Target marker never seen before, switching back to manual mode')
+                    print('Target marker never seen before, research mode activated')
                     RCStatus.reset()
-                    MODE.status = MODE.MANUAL_FLIGHT
+                    MODE.status = MODE.AUTO_RESEARCH
                 return
+        elif MODE.status == MODE.AUTO_RESEARCH:
+            print('Target marker found, resuming automatic flight')
+            MODE.status = MODE.AUTO_FLIGHT
+            br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
         else:
             br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
 
