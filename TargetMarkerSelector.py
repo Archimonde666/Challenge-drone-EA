@@ -86,9 +86,9 @@ class TargetMarkerSelector:
         MarkerStatus.offset = offset
         MarkerStatus.target_pt = target_pt
         MarkerStatus.height = height
-        MarkerStatus.height_lr_delta = l_height - r_height
+        MarkerStatus.height_lr_delta = (l_height - r_height) / max(height, width)
         MarkerStatus.width = width
-        MarkerStatus.width_tb_delta = t_width - b_width
+        MarkerStatus.width_tb_delta = (t_width - b_width) / max(height, width)
 
     @staticmethod
     def _get_target_marker(ids, corners) -> (int, List[ScreenPosition]):
