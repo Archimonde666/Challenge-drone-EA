@@ -42,13 +42,13 @@ class VisualControl:
             RCStatus.d = 0
             if (ENV.status == ENV.SIMULATION and TelloSensors.x > 2.5) \
                     or (ENV.status == ENV.REAL and abs(1 - TelloSensors.x) < 0.1):
+                MarkersMemory.get_new_target()
                 MarkersMemory.update_target()
 
         elif (MarkerStatus.height > 55 or MarkerStatus.width > 55) \
                 and dh == 0 and dx < 5:
             print('Passing gate...')
             MarkersMemory.passing_gate = True
-            MarkersMemory.get_new_target()
             RCStatus.reset()
             TelloSensors.reset_position_estimate()
 
