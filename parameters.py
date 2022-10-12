@@ -26,14 +26,14 @@ SIGHT_V_ANGLE: Angle = Angle(41.6 * DEG2RAD)
 SIGHT_V_ANGLE_OFFSET: Angle = Angle(11.5 * DEG2RAD)
 SIGHT_H_ANGLE: Angle = Angle(53.6 * DEG2RAD)
 
-MARKER_OFFSET: tuple = (0, -4)
+MARKER_OFFSET: tuple = (0, -2)
 
 
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
-    status: int = SIMULATION
-    
+    status: int = REAL
+
 
 class RUN:
     STOP: bool = False

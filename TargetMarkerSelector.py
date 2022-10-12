@@ -3,12 +3,9 @@ from MarkersDetector import MarkersDetector
 from MarkersMemory import MarkersMemory
 from MarkerStatus import MarkerStatus
 from RCStatus import RCStatus
-# from TelloSensors import TelloSensors
 
 from typing import List
-
 import numpy
-# import cv2
 
 
 class TargetMarkerSelector:
@@ -23,7 +20,7 @@ class TargetMarkerSelector:
         MarkerStatus.reset()
 
     @classmethod
-    def run(cls, frame):
+    def run(cls):
         target_marker_id, corners = cls._get_target_marker(MarkersDetector.ids, MarkersDetector.corners)
         if target_marker_id == -1:
             # If no markers are found on the current frame, the short-term memory provides
@@ -35,7 +32,8 @@ class TargetMarkerSelector:
                 if reliability < 0.25 and not MarkersMemory.passing_gate:
                     MarkerStatus.reset()
                     if MODE.status == MODE.AUTO_FLIGHT:
-                        print('Target marker lost for too long, research mode activated')
+                        # print('Target marker lost for too long, switching back to manual mode')
+                        print("autosearch activate")
                         RCStatus.reset()
                         MODE.status = MODE.AUTO_RESEARCH
                     return
@@ -43,15 +41,20 @@ class TargetMarkerSelector:
             except KeyError:
                 MarkerStatus.reset()
                 if MODE.status == MODE.AUTO_FLIGHT:
-                    print('Target marker never seen before, research mode activated')
+                    print("autosearch activate")
                     RCStatus.reset()
                     MODE.status = MODE.AUTO_RESEARCH
                 return
+
         elif MODE.status == MODE.AUTO_RESEARCH:
-            print('Target marker found, resuming automatic flight')
+
+            print("On sort de l'autoresearch")
+
             MODE.status = MODE.AUTO_FLIGHT
+
             br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
         else:
+
             br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
 
         center_pt = cls._get_midpoint([br, bl, tl, tr])

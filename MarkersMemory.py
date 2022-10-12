@@ -13,7 +13,7 @@ class MarkersMemory:
                                             marker n°1 reliability: float}
                                     :
     """
-    current_target_marker_id: int = 0
+    current_target_marker_id: int = 1
     passing_gate: bool = False
     cmp: int = 0
     markers_screen_pos: dict = {}
@@ -21,7 +21,7 @@ class MarkersMemory:
     @classmethod
     def update_memory(cls):
         for key in cls.markers_screen_pos.keys():
-            cls.markers_screen_pos[key]['reliability'] = 0.98 * cls.markers_screen_pos[key]['reliability']
+            cls.markers_screen_pos[key]['reliability'] = 0.9875 * cls.markers_screen_pos[key]['reliability']
         if MarkersDetector.ids is not None:
             for i in range(len(MarkersDetector.ids)):
                 marker_id = MarkersDetector.ids[i][0]

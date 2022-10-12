@@ -58,7 +58,7 @@ class UserInputReader:
             if event.type == pygame.QUIT:
                 RUN.status = RUN.STOP
             elif event.type == pygame.JOYAXISMOTION:
-                if MODE.status == MODE.AUTO_FLIGHT and abs(event.value) > 0.1:
+                if (MODE.status == MODE.AUTO_FLIGHT or MODE.status == MODE.AUTO_RESEARCH) and abs(event.value) > 0.1:
                     print('User input detected, automatic control module disabled')
                     RCStatus.reset()
                     MODE.status = MODE.MANUAL_FLIGHT

@@ -104,7 +104,7 @@ class ImageProcess:
             # Update the last screen position of all makers
             MarkersMemory.update_memory()
             # Select the ARUCO marker to reach first
-            TargetMarkerSelector.run(frame)
+            TargetMarkerSelector.run()
             # Get the velocity commands from the automatic control module
             if MODE.status == MODE.AUTO_FLIGHT or MODE.status == MODE.AUTO_RESEARCH:
                 VisualControl.run(dt)
