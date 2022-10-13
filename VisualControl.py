@@ -14,7 +14,7 @@ class VisualControl:
     """
     KP_LR_CTRL = 5 * 60
     KI_LR_CTRL = 0
-    KP_FB_CTRL = 5
+    KP_FB_CTRL = 4
     KP_UD_CTRL = 0.2
     KI_UD_CTRL = 0.02
     # KP_YAW_CTRL = 1 * 10**-3
@@ -37,20 +37,20 @@ class VisualControl:
 
         if MODE.status == MODE.AUTO_RESEARCH:
             RCStatus.a = 0
-            RCStatus.b = 0
+            RCStatus.b = 20
             RCStatus.c = 0
-            RCStatus.d = -20
+            RCStatus.d = -50
 
         elif MarkersMemory.passing_gate:
             RCStatus.a = 0
             if ENV.status == ENV.SIMULATION:
                 RCStatus.b = 25
             elif ENV.status == ENV.REAL:
-                RCStatus.b = 20
+                RCStatus.b = 60
             RCStatus.c = 0
             RCStatus.d = 0
             if (ENV.status == ENV.SIMULATION and TelloSensors.x > 2.5) \
-                    or (ENV.status == ENV.REAL and TelloSensors.x > 0.5):
+                    or (ENV.status == ENV.REAL and TelloSensors.x > 0.7):
                 MarkersMemory.get_new_target()
                 MarkersMemory.update_target()
                 cls.previous_i_h = 0
