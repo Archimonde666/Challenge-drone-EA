@@ -12,7 +12,6 @@ BLUE: tuple = (0, 0, 255)
 DEG2RAD: float = math.pi / 180
 RAD2DEG: float = 180 / math.pi
 
-FPS: int = 120
 # Simulator frame dimensions : (480, 640, 3)
 # Real Tello frame dimensions : (720, 960, 3)
 IMG_SIZE: tuple[int, int] = (640, 480)
@@ -32,7 +31,7 @@ MARKER_OFFSET: tuple = (3.5, 0)
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
-    status: int = 0
+    status: int = SIMULATION
 
 
 class RUN:

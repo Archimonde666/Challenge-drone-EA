@@ -24,6 +24,7 @@ def setup():
                           rc_yaw_threshold=40)
     TargetMarkerSelector.setup()
     MarkersMemory.setup(first_marker_id=1)
+    VisualControl.setup()
     tello, frame_reader = init_env()
     tello.LOGGER.setLevel(logging.WARN)
     fh = logging.FileHandler(filename='Tello.log')
