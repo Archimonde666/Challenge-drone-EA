@@ -12,33 +12,33 @@ class VisualControl:
     Automatically controls the Tello.
     Output: RCStatus class containing velocity commands that will be forwarded to the UAV
     """
-    KP_LR_CTRL: float = 0.0
-    KI_LR_CTRL: float = 0.0
-    KP_FB_CTRL: float = 0.0
-    KP_UD_CTRL: float = 0.0
-    KI_UD_CTRL: float = 0.0
-    KP_YAW_CTRL: float = 0.0
-    KI_YAW_CTRL: float = 0.0
+    KP_LR_CTRL:                     float = 0.0
+    KI_LR_CTRL:                     float = 0.0
+    KP_FB_CTRL:                     float = 0.0
+    KP_UD_CTRL:                     float = 0.0
+    KI_UD_CTRL:                     float = 0.0
+    KP_YAW_CTRL:                    float = 0.0
+    KI_YAW_CTRL:                    float = 0.0
 
-    previous_i_h: float = 0.0
-    previous_i_dh: float = 0.0
-    previous_i_dx: float = 0.0
-    previous_i_dy: float = 0.0
-    forgetting_factor: float = 0.0
+    previous_i_h:                   float = 0.0
+    previous_i_dh:                  float = 0.0
+    previous_i_dx:                  float = 0.0
+    previous_i_dy:                  float = 0.0
+    forgetting_factor:              float = 0.0
 
-    auto_research_yaw_rate: int = 0
-    passing_gate_forward_speed: int = 0
-    passing_gate_distance: float = 0.0
-    marker_size_target: int = 0
+    auto_research_yaw_rate:         int = 0
+    passing_gate_forward_speed:     int = 0
+    passing_gate_distance_goal:     float = 0.0
+    marker_size_target:             int = 0
 
-    marker_size_threshold: int = 0
-    marker_offset_tolerance: int = 0
-    marker_misalignment_tolerance: float = 0.0
+    marker_size_threshold:          int = 0
+    marker_offset_tolerance:        int = 0
+    marker_misalignment_tolerance:  float = 0.0
 
     @classmethod
     def setup(cls):
         if ENV.status == ENV.REAL:
-            cls.KP_LR_CTRL = 5 * 60
+            cls.KP_LR_CTRL = 300
             cls.KI_LR_CTRL = 0
             cls.KP_FB_CTRL = 4
             cls.KP_UD_CTRL = 0.2
@@ -96,7 +96,7 @@ class VisualControl:
             RCStatus.b = cls.passing_gate_forward_speed
             RCStatus.c = 0
             RCStatus.d = 0
-            if TelloSensors.x > cls.passing_gate_distance:
+            if TelloSensors.x > cls.passing_gate_distance_goal:
                 MarkersMemory.get_new_target()
                 MarkersMemory.update_target()
                 cls.previous_i_h = 0

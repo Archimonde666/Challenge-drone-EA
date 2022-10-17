@@ -25,7 +25,7 @@ class MarkersMemory:
         if ENV.status == ENV.REAL:
             cls.forgetting_factor = 0.9875
         elif ENV.status == ENV.SIMULATION:
-            cls.forgetting_factor = 0.9875
+            cls.forgetting_factor = 0.94
 
     @classmethod
     def update_memory(cls):
@@ -42,13 +42,16 @@ class MarkersMemory:
                         # ... let's update the memory with the last seen corners
                         # and increase the reliability level
                         cls.markers_screen_pos[str(marker_id)]['corners'] = MarkersDetector.corners[i][0]
-                        cls.markers_screen_pos[str(marker_id)]['reliability'] = \
-                            cls.forgetting_factor * (cls.markers_screen_pos[marker_id]['reliability'] - 1) + 1
+                        if cls.markers_screen_pos[str(marker_id)]['reliability'] < 0.25:
+                            cls.markers_screen_pos[str(marker_id)]['reliability'] = 0.25
+                        else:
+                            cls.markers_screen_pos[str(marker_id)]['reliability'] = \
+                                cls.forgetting_factor * (cls.markers_screen_pos[str(marker_id)]['reliability'] - 1) + 1
                     else:
                         # If the marker does not exist in the memory (if it is seen for the 1st time),
                         # let's allocate a memory field for it.
                         cls.markers_screen_pos[str(marker_id)] = dict(corners=MarkersDetector.corners[i][0],
-                                                                      reliability=0.0)
+                                                                      reliability=0.25)
 
             for saved_marker_id in cls.markers_screen_pos.keys():
                 if all(saved_marker_id != str(MarkersDetector.ids[i][0]) for i in range(len(MarkersDetector.ids))):

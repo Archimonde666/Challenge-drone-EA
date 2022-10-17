@@ -32,63 +32,54 @@ class TargetMarkerSelector:
                 if reliability < 0.25 and not MarkersMemory.passing_gate:
                     MarkerStatus.reset()
                     if MODE.status == MODE.AUTO_FLIGHT:
-                        # print('Target marker lost for too long, switching back to manual mode')
-                        print("autosearch activate")
+                        print('Target marker lost for too long, switching to automatic research mode')
                         RCStatus.reset()
                         MODE.status = MODE.AUTO_RESEARCH
                     return
                 br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
+
             except KeyError:
                 MarkerStatus.reset()
                 if MODE.status == MODE.AUTO_FLIGHT:
-                    print("autosearch activate")
+                    print('Target marker never seen before, switching to automatic research mode')
                     RCStatus.reset()
                     MODE.status = MODE.AUTO_RESEARCH
                 return
 
         elif MODE.status == MODE.AUTO_RESEARCH:
-
-            print("On sort de l'autoresearch")
-
+            print('Target marker found, switching back to automatic race mode')
             MODE.status = MODE.AUTO_FLIGHT
-
             br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
+
         else:
-
             br, bl, tl, tr = corners[0], corners[1], corners[2], corners[3]
 
-        center_pt = cls._get_midpoint([br, bl, tl, tr])
-        left_pt = cls._get_midpoint([bl, tl])
-        right_pt = cls._get_midpoint([br, tr])
-        bottom_pt = cls._get_midpoint([br, bl])
-        top_pt = cls._get_midpoint([tl, tr])
+        left_side_height = cls._length_segment(tl, bl)
+        right_side_height = cls._length_segment(tr, br)
+        top_width = cls._length_segment(tl, tr)
+        bottom_width = cls._length_segment(bl, br)
 
-        height = cls._length_segment(bottom_pt, top_pt)
-        l_height = cls._length_segment(tl, bl)
-        r_height = cls._length_segment(tr, br)
-        width = cls._length_segment(left_pt, right_pt)
-        t_width = cls._length_segment(tl, tr)
-        b_width = cls._length_segment(bl, br)
-
-        offset = ScreenPosition((int(MARKER_OFFSET[0] * width),
-                                 int(MARKER_OFFSET[1] * height)))
-        target_pt = ScreenPosition((center_pt[0] + offset[0],
-                                    center_pt[1] + offset[1]))
-
-        # update output
         MarkerStatus.id = target_marker_id
         MarkerStatus.corners = corners
-        MarkerStatus.center_pt = center_pt
-        MarkerStatus.left_pt = left_pt
-        MarkerStatus.right_pt = right_pt
-        MarkerStatus.bottom_pt = bottom_pt
-        MarkerStatus.top_pt = top_pt
-        MarkerStatus.offset = offset
-        MarkerStatus.target_pt = target_pt
-        MarkerStatus.height = height
-        MarkerStatus.height_lr_delta = (l_height - r_height) / max(height, width)
-        MarkerStatus.width = width
-        MarkerStatus.width_tb_delta = (t_width - b_width) / max(height, width)
+
+        MarkerStatus.center_pt = cls._get_midpoint([br, bl, tl, tr])
+        MarkerStatus.left_pt = cls._get_midpoint([bl, tl])
+        MarkerStatus.right_pt = cls._get_midpoint([br, tr])
+        MarkerStatus.top_pt = cls._get_midpoint([tl, tr])
+        MarkerStatus.bottom_pt = cls._get_midpoint([br, bl])
+
+        MarkerStatus.height = cls._length_segment(MarkerStatus.bottom_pt, MarkerStatus.top_pt)
+        MarkerStatus.width = cls._length_segment(MarkerStatus.left_pt, MarkerStatus.right_pt)
+
+        MarkerStatus.height_lr_delta = ((left_side_height - right_side_height)
+                                        / max(MarkerStatus.height, MarkerStatus.width))
+        MarkerStatus.width_tb_delta = ((top_width - bottom_width)
+                                       / max(MarkerStatus.height, MarkerStatus.width))
+
+        MarkerStatus.offset = ScreenPosition((int(MARKER_OFFSET[0] * MarkerStatus.width),
+                                              int(MARKER_OFFSET[1] * MarkerStatus.height)))
+        MarkerStatus.target_pt = ScreenPosition((MarkerStatus.center_pt[0] + MarkerStatus.offset[0],
+                                                 MarkerStatus.center_pt[1] + MarkerStatus.offset[1]))
 
     @staticmethod
     def _get_target_marker(ids, corners) -> (int, List[ScreenPosition]):
