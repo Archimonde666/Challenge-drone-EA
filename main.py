@@ -1,26 +1,34 @@
 import logging
 import time
-
-import parameters
-from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
-from subsys_display_view import Display
-from subsys_read_user_input import ReadUserInput, ModeStatus, RCStatus
-from subsys_markers_detected import MarkersDetector, DetectedMarkersStatus
-from subsys_select_target_marker import SelectTargetMarker
-from subsys_tello_sensors import TelloSensors, FrameReader
-from subsys_tello_actuators import TelloActuators
-from subsys_visual_control import VisualControl
 from threading import Thread
+from DJITelloPy.djitellopy.tello import Tello, BackgroundFrameRead
+
+from Display import Display
+from FrameReader import FrameReader
+from RCStatus import RCStatus
+from MarkersDetector import MarkersDetector
+from TelloSensors import TelloSensors
+from MarkersMemory import MarkersMemory
+from MarkerStatus import MarkerStatus
+from parameters import MODE, RUN, ENV, merge_dicts, WHITE
+from TargetMarkerSelector import TargetMarkerSelector
+from TelloActuators import TelloActuators
+from UserInputReader import UserInputReader
+from VisualControl import VisualControl
 
 
 def setup():
     Display.setup()
-    ReadUserInput.setup()
-    SelectTargetMarker.setup()
+    UserInputReader.setup(rc_roll_pitch_threshold=100,
+                          rc_height_threshold=20,
+                          rc_yaw_threshold=40)
+    TargetMarkerSelector.setup()
+    MarkersMemory.setup(first_marker_id=0)
+    VisualControl.setup()
     tello, frame_reader = init_env()
-    tello.LOGGER.setLevel(logging.INFO)
+    tello.LOGGER.setLevel(logging.WARN)
     fh = logging.FileHandler(filename='Tello.log')
-    fileLogFormat='%(asctime)s - %(levelname)s - %(message)s'
+    fileLogFormat = '%(asctime)s - %(levelname)s - %(message)s'
     fileFormatter = logging.Formatter(fileLogFormat)
     Tello.LOGGER.addHandler(fh)
     FrameReader.setup(frame_reader)
@@ -33,10 +41,10 @@ def setup():
 def init_env() -> (Tello, BackgroundFrameRead):
     # Init Tello python object that interacts with the Tello UAV
     tello = None
-    if parameters.ENV.status == parameters.ENV.SIMULATION:
+    if ENV.status == ENV.SIMULATION:
         Tello.CONTROL_UDP_PORT_CLIENT = 9000
         tello = Tello("127.0.0.1", image_received_method=FrameReader.update_frame)
-    elif parameters.ENV.status == parameters.ENV.REAL:
+    elif ENV.status == ENV.REAL:
         Tello.CONTROL_UDP_PORT_CLIENT = Tello.CONTROL_UDP_PORT
         tello = Tello("192.168.10.1", image_received_method=FrameReader.update_frame)
     tello.connect()
@@ -44,9 +52,9 @@ def init_env() -> (Tello, BackgroundFrameRead):
     tello.streamon()
     try:
         frame_reader = tello.get_frame_read()
-        parameters.RUN.status = parameters.RUN.START
+        RUN.status = RUN.START
     except Exception as exc:
-        parameters.RUN.status = parameters.RUN.STOP
+        RUN.status = RUN.STOP
         raise exc
     return tello, frame_reader
 
@@ -83,30 +91,37 @@ class ImageProcess:
     @classmethod
     def run(cls):
         print('Image processing thread started')
+        previous_frame_time = 0
         while True:
             if cls.stop_request:
                 break
+            frame_time = time.time()
+            dt = frame_time - previous_frame_time
             # Retrieve UAV internal variables
-            TelloSensors.run()
+            TelloSensors.run(dt)
             # Retrieve most recent frame from the Tello
             frame = FrameReader.get_most_recent_frame()
             # Search for all ARUCO markers in the frame
             frame_with_markers = MarkersDetector.run(frame)
+            # Update the last screen position of all makers
+            MarkersMemory.update_memory()
             # Select the ARUCO marker to reach first
-            marker_status = SelectTargetMarker.run(frame_with_markers,
-                                                   DetectedMarkersStatus,
-                                                   offset=(-4, 0))
+            TargetMarkerSelector.run()
             # Get the velocity commands from the automatic control module
-            if ModeStatus.value == parameters.MODE.AUTO_FLIGHT:
-                VisualControl.run(marker_status)
+            if MODE.status == MODE.AUTO_FLIGHT or MODE.status == MODE.AUTO_RESEARCH:
+                VisualControl.run(dt)
             # Send the commands to the UAV
-            TelloActuators.run(RCStatus)
+            TelloActuators.send_rc_command()
             # Update pygame display window
-            variables_to_print = parameters.merge_dicts([TelloSensors.__get_dict__(),
-                                                         ModeStatus.__get_dict__(),
-                                                         RCStatus.__get_dict__(),
-                                                         marker_status.__get_dict__()])
+            variables_to_print = merge_dicts([MarkerStatus.__get_dict__(),
+                                              MarkersMemory.__get_dict__(),
+                                              VisualControl.__get_dict__(),
+                                              TelloSensors.__get_dict__(),
+                                              RCStatus.__get_dict__(),
+                                              {'FPS': (int(1 / dt), WHITE)}
+                                              ])
             Display.run(frame_with_markers, variables_to_print)
+            previous_frame_time = frame_time
         print('Image processing thread stopped')
 
     @classmethod
@@ -127,7 +142,7 @@ if __name__ == "__main__":
         # The run_pygame_loop() is a while loop that breaks only when the flight is finished
         # This loop constantly checks for new user inputs, and updates the
         # pygame window with the latest available frame
-        flight_finished = ReadUserInput.run_pygame_loop()
+        flight_finished = UserInputReader.run_pygame_loop()
         stop()
     else:
         stop()
