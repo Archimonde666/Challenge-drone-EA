@@ -7,7 +7,8 @@ ScreenPosition = NewType('tuple(Pixels, Pixels)', tuple[int, int])
 
 RED: tuple = (255, 0, 0)
 GREEN: tuple = (0, 255, 0)
-BLUE: tuple = (0, 0, 255)
+BLUE: tuple = (0, 128, 255)
+WHITE: tuple = (255, 255, 255)
 
 DEG2RAD: float = math.pi / 180
 RAD2DEG: float = 180 / math.pi
@@ -19,19 +20,24 @@ SCREEN_SIZE: tuple[int, int] = (800, 480)
 DRONE_POS: ScreenPosition = ScreenPosition((IMG_SIZE[0] // 2, IMG_SIZE[1] // 2))
 
 LAPS: bool = True
-markers_interval: tuple[int, int] = (1, 4)  # (lowest marker id, highest marker id)
+MARKERS_INTERVAL: tuple[int, int] = (0, 10)  # (lowest marker id, highest marker id)
 
 SIGHT_V_ANGLE: Angle = Angle(41.6 * DEG2RAD)
 SIGHT_V_ANGLE_OFFSET: Angle = Angle(11.5 * DEG2RAD)
 SIGHT_H_ANGLE: Angle = Angle(53.6 * DEG2RAD)
-
-MARKER_OFFSET: tuple = (3.5, 0)
 
 
 class ENV:
     REAL: int = 0
     SIMULATION: int = 1
     status: int = SIMULATION
+
+
+MARKER_OFFSET: tuple[float, float] = (0, 0)
+if ENV.status == ENV.REAL:
+    MARKER_OFFSET = (3.5, 0)
+elif ENV.status == ENV.SIMULATION:
+    MARKER_OFFSET = (-4, 0)
 
 
 class RUN:

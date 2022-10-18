@@ -1,12 +1,10 @@
 import numpy
 import pygame
 import cv2
-from parameters import RED, GREEN, BLUE, IMG_SIZE, SCREEN_SIZE, ScreenPosition, DRONE_POS, DEG2RAD
+from parameters import RED, GREEN, BLUE, WHITE, IMG_SIZE, SCREEN_SIZE, ScreenPosition, DRONE_POS, DEG2RAD
 from parameters import SIGHT_V_ANGLE, SIGHT_V_ANGLE_OFFSET
 from MarkerStatus import MarkerStatus
 from TelloSensors import TelloSensors
-
-from typing import Any
 
 
 class Display:
@@ -45,7 +43,7 @@ class Display:
         cls.draw(frame)
         cls.SCREEN.fill([0, 0, 0])
         for key in variables_dict:
-            cls._log(f"{key}: ", f"{variables_dict[key]}")
+            cls._log(f"{key}: ", f"{variables_dict[key][0]}", variables_dict[key][1])
         frame = numpy.rot90(frame)
         frame = numpy.flipud(frame)
         frame = pygame.surfarray.make_surface(frame)
@@ -53,21 +51,23 @@ class Display:
         cls.SCREEN.blit(frame, cls.pos_img_in_screen)
 
     @classmethod
-    def _log(cls, title: str, value: Any):
+    def _log(cls, title: str, value: str, color: tuple[int, int, int]):
         """ We use the title argument as key in dictionary to save the position of the log in screen"""
         if title in cls.log_dict:
             cls.log_dict[title]['value'] = value
+            cls.log_dict[title]['color'] = color
         else:
             next_line = cls.current_line + cls.INTER_LINE
             position = (cls.LEFT_MARGIN, next_line)
-            cls.log_dict[title] = {"pos": position, 'value': value}
+            cls.log_dict[title] = {"pos": position, 'value': value, 'color': color}
             cls.current_line = next_line
 
     @classmethod
     def _update_log(cls):
         for title, item in cls.log_dict.items():
             text = f"{title} {item['value']}"
-            panel_info = cls.FONT_PANEL_INFO.render(text, True, RED)
+            color = item['color']
+            panel_info = cls.FONT_PANEL_INFO.render(text, True, color)
             cls.SCREEN.blit(panel_info, item['pos'])
 
     @classmethod
@@ -118,7 +118,7 @@ class Display:
         cv2.line(frame,
                  lh,
                  rh,
-                 (0, 0, 0), 2)
+                 WHITE, 1)
 
         cv2.drawMarker(frame,
                        TelloSensors.trajectory_point,

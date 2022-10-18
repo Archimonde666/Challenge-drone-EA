@@ -1,4 +1,4 @@
-from parameters import ScreenPosition, Distance, DRONE_POS
+from parameters import ScreenPosition, Distance, DRONE_POS, RED, GREEN
 from typing import List
 
 
@@ -46,8 +46,5 @@ class MarkerStatus:
 
     @classmethod
     def __get_dict__(cls) -> dict:
-        ms: dict = {'id': cls.id,
-                    'm_height': cls.height,
-                    'm_width': cls.width,
-                    'dh': cls.height_lr_delta}
+        ms: dict = {'id': (cls.id, GREEN) if cls.id != -1 else (cls.id, RED)}
         return ms

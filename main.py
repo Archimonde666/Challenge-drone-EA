@@ -10,7 +10,7 @@ from MarkersDetector import MarkersDetector
 from TelloSensors import TelloSensors
 from MarkersMemory import MarkersMemory
 from MarkerStatus import MarkerStatus
-from parameters import MODE, RUN, ENV, merge_dicts
+from parameters import MODE, RUN, ENV, merge_dicts, WHITE
 from TargetMarkerSelector import TargetMarkerSelector
 from TelloActuators import TelloActuators
 from UserInputReader import UserInputReader
@@ -23,7 +23,7 @@ def setup():
                           rc_height_threshold=20,
                           rc_yaw_threshold=40)
     TargetMarkerSelector.setup()
-    MarkersMemory.setup(first_marker_id=1)
+    MarkersMemory.setup(first_marker_id=0)
     VisualControl.setup()
     tello, frame_reader = init_env()
     tello.LOGGER.setLevel(logging.WARN)
@@ -113,11 +113,12 @@ class ImageProcess:
             # Send the commands to the UAV
             TelloActuators.send_rc_command()
             # Update pygame display window
-            variables_to_print = merge_dicts([TelloSensors.__get_dict__(),
-                                              RCStatus.__get_dict__(),
-                                              MarkerStatus.__get_dict__(),
+            variables_to_print = merge_dicts([MarkerStatus.__get_dict__(),
                                               MarkersMemory.__get_dict__(),
-                                              {'FPS': int(1/dt)}
+                                              VisualControl.__get_dict__(),
+                                              TelloSensors.__get_dict__(),
+                                              RCStatus.__get_dict__(),
+                                              {'FPS': (int(1 / dt), WHITE)}
                                               ])
             Display.run(frame_with_markers, variables_to_print)
             previous_frame_time = frame_time

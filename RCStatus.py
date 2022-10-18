@@ -1,3 +1,6 @@
+from parameters import WHITE
+
+
 class RCStatus:
     """
     Contains the velocity commands that will be forwarded to the Tello
@@ -21,10 +24,10 @@ class RCStatus:
 
     @classmethod
     def __get_dict__(cls) -> dict:
-        rc: dict = {'a': cls.a,
-                    'b': cls.b,
-                    'c': cls.c,
-                    'd': cls.d}
+        rc: dict = {'a': (cls.a, WHITE),
+                    'b': (cls.b, WHITE),
+                    'c': (cls.c, WHITE),
+                    'd': (cls.d, WHITE)}
         return rc
 
     @classmethod

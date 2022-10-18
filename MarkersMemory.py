@@ -1,4 +1,4 @@
-from parameters import MODE, LAPS, markers_interval, ENV
+from parameters import MODE, LAPS, MARKERS_INTERVAL, ENV, GREEN, RED
 from MarkersDetector import MarkersDetector
 from MarkerStatus import MarkerStatus
 from RCStatus import RCStatus
@@ -36,7 +36,7 @@ class MarkersMemory:
                 marker_id = MarkersDetector.ids[i][0]
                 # if the marker index is higher than the maximum expected one,
                 # the marker is discarded
-                if marker_id <= markers_interval[1]:
+                if marker_id <= MARKERS_INTERVAL[1]:
                     # If the marker already exists in the memory, ...
                     if any(str(marker_id) == key for key in cls.markers_screen_pos.keys()):
                         # ... let's update the memory with the last seen corners
@@ -74,10 +74,10 @@ class MarkersMemory:
 
     @classmethod
     def get_new_target(cls):
-        if cls.current_target_marker_id < markers_interval[1]:
+        if cls.current_target_marker_id < MARKERS_INTERVAL[1]:
             cls.current_target_marker_id += 1
         elif LAPS:
-            MarkersMemory.current_target_marker_id = markers_interval[0]
+            MarkersMemory.current_target_marker_id = MARKERS_INTERVAL[0]
         else:
             MarkersMemory.current_target_marker_id = -1
 
@@ -92,11 +92,12 @@ class MarkersMemory:
 
     @classmethod
     def __get_dict__(cls):
+        marker_id = cls.current_target_marker_id
         try:
-            mm: dict = {'Target id': cls.current_target_marker_id,
-                        'Trust (%)': round(
-                            100 * cls.markers_screen_pos[str(cls.current_target_marker_id)]['reliability'])}
+            trust = round(100 * cls.markers_screen_pos[str(cls.current_target_marker_id)]['reliability'])
         except KeyError:
-            mm: dict = {'Target id': cls.current_target_marker_id,
-                        'Trust (%)': 'N/D'}
+            trust = 0
+
+        mm: dict = {'Target id': (marker_id, GREEN) if marker_id != -1 else (marker_id, RED),
+                    'Trust (%)': (trust, GREEN) if trust > 25 else (trust, RED)}
         return mm

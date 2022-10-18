@@ -99,7 +99,8 @@ class UserInputReader:
         elif button == 'Automatic flight' and key_pressed:
             RCStatus.reset()
             MODE.status = MODE.AUTO_FLIGHT
-        elif MODE.status == MODE.AUTO_FLIGHT and key_pressed:
+
+        elif (MODE.status == MODE.AUTO_FLIGHT or MODE.status == MODE.AUTO_RESEARCH) and key_pressed:
             RCStatus.reset()
             MarkersMemory.passing_gate = False
             MODE.status = MODE.MANUAL_FLIGHT

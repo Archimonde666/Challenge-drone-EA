@@ -2,7 +2,7 @@ import numpy
 
 from DJITelloPy.djitellopy.tello import Tello
 from parameters import MODE, IMG_SIZE, SIGHT_H_ANGLE, SIGHT_V_ANGLE, DEG2RAD, DRONE_POS, ScreenPosition, ENV
-from parameters import SIGHT_V_ANGLE_OFFSET
+from parameters import SIGHT_V_ANGLE_OFFSET, RED, WHITE, GREEN
 
 
 class TelloSensors:
@@ -80,16 +80,17 @@ class TelloSensors:
         y = int(IMG_SIZE[1] * numpy.tan(SIGHT_V_ANGLE_OFFSET + (cls.pitch * DEG2RAD))
                 / (numpy.tan((SIGHT_V_ANGLE / 2) + SIGHT_V_ANGLE_OFFSET + (cls.pitch * DEG2RAD))
                    + numpy.tan((SIGHT_V_ANGLE / 2) - SIGHT_V_ANGLE_OFFSET - (cls.pitch * DEG2RAD))))
-        cls.trajectory_point = ScreenPosition((DRONE_POS[0] + dx, y))
+        if ENV.status == ENV.REAL:
+            # cls.trajectory_point = ScreenPosition((DRONE_POS[0] + dx, y))
+            cls.trajectory_point = ScreenPosition((DRONE_POS[0] - dx, y))
+        elif ENV.status == ENV.SIMULATION:
+            cls.trajectory_point = ScreenPosition((DRONE_POS[0] - dx, y))
 
     @classmethod
     def __get_dict__(cls) -> dict:
-        sensors: dict = {'Battery': cls.battery,
-                         'Roll': cls.roll,
-                         'Pitch': cls.pitch,
-                         'Yaw': cls.yaw,
-                         'Height': cls.height,
-                         'ax': round(cls.ax, 6),
-                         'vx': round(cls.vx, 3),
-                         'x': round(cls.x, 3)}
+        sensors: dict = {'Battery': (cls.battery, RED) if cls.battery < 25 else (cls.battery, GREEN),
+                         'Roll': (cls.roll, WHITE),
+                         'Pitch': (cls.pitch, WHITE),
+                         'Yaw': (cls.yaw, WHITE),
+                         'Height': (cls.height, WHITE)}
         return sensors
