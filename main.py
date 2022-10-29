@@ -20,11 +20,12 @@ def setup():
     tello, frame_reader = init_env()
     tello.LOGGER.setLevel(logging.INFO)
     fh = logging.FileHandler(filename='Tello.log')
-    fileLogFormat='%(asctime)s - %(levelname)s - %(message)s'
+    fileLogFormat = '%(asctime)s - %(levelname)s - %(message)s'
     fileFormatter = logging.Formatter(fileLogFormat)
     Tello.LOGGER.addHandler(fh)
     FrameReader.setup(frame_reader)
     TelloActuators.setup(tello)
+    VisualControl.setup(tello)
     TelloSensors.setup(tello)
     frame_reception_check = ImageProcess.setup(timeout=2)
     return frame_reception_check
@@ -90,6 +91,7 @@ class ImageProcess:
             TelloSensors.run()
             # Retrieve most recent frame from the Tello
             frame = FrameReader.get_most_recent_frame()
+
             # Search for all ARUCO markers in the frame
             frame_with_markers = MarkersDetector.run(frame)
             # Select the ARUCO marker to reach first

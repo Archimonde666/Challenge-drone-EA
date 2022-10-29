@@ -21,7 +21,9 @@ class TelloActuators:
     def update_rc_command(cls, rc_status: RCStatus):
         """Update routine. Send velocities to Tello.
         """
-        if rc_status.toStr() != cls.previous_RCstate :
+        rc_status.c = int(rc_status.c * 0.5)
+        if rc_status.toStr() != cls.previous_RCstate:
+            cls.tello.set_speed(100)
             cls.tello.send_rc_control(
                 rc_status.a,  # left_right_velocity,
                 rc_status.b,  # for_back_velocity,
